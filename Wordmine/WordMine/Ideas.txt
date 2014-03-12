@@ -1,0 +1,139 @@
+﻿-do something with letters and words
+	-2 letters in every room
+	-make a word and gain upgrade
+		-make word at special block
+
+-blocktypes:
+	-empty with a pickup
+	-bump into it to mine resources (it regenerates slowly)
+	-mine out some surrounding blocks
+	-trap dealing damage or costing resources
+	-shop where you can buy things for resources
+	-a letter-pickup
+	-an altar to make words from the letters
+	-a breakable wall which can be destroyed by bombs or other stuff
+	-an unbreakable wall
+	-a door which needs a key to open
+	-a teleporter
+	-a creep
+	-can only be mined out with certain item
+	-
+
+-creeps:
+	-when bumped into an attack follows:
+		-player deals damage based on attack and creep defense
+		-creeps does the same back
+		-there may be effects
+		-when dead they may drop consumable item
+
+-battle-effects:
+	-poison (lose health for some time)
+	-disease (lose stats for some time)
+	-steal resources or Gold
+
+-player attributes:
+	-Health (0 is death)
+	-Resources (pays for mining, 0 is pay with health)
+	-Gold (pays for shops)
+	-Attack (used in battle)
+	-Defense (used in battle)
+	-Luck
+
+-items:
+	-key which opens doors and chest
+	-bomb which deals explosive damage to surrounding (including player), explode after 3 turns
+	-consumable item (effects applied and item disappears)
+		-heart (adds health)
+		-pile of stuff (adds resources)
+		-Gold (adds Gold)
+		-special item
+	-carryable item (can be activated by paying something,can only carry one, when moving)
+
+When is this finished?
+	-when it is fun to wander around finding things and get bigger and better, solve minor puzzles, eventually dying to some big traps or creeps, or maybe reach some objective
+
+Random vs content
+-i want to be able to make a list of things in the game, and build a randomizer that puts it in the correct place
+-things i want to make a list of:
+	-creeps
+	-items
+	-ornaments
+	-roomsection configurations
+
+
+
+Story:
+-why is everything covered in minable stuff?
+-how do you cover a level deeper with the same stuff, wouldnt it be less filled
+
+-possible stuff:
+	-sand
+	-ice
+	-human flesh
+	-alien goo
+	-magical darkness
+	-gamelogic
+-so what am i mining and what am i mining in (what is a room and a level)
+	-a collapsed dungeon (but why are there living creatures)
+	-levels are are located on poles of different planets, frozen in ice and are alien bases
+	-a dungeon with magical darkness 
+	-no explanation, just make some shit up.
+	-a magical accident caused a dungeon to fill with rock.
+		-you are a gnome that happens uppon the upper chamber and starts to explore
+		-living creatures are there because some areas were not filled
+		
+
+
+WordMine
+-you mine connected rooms for letters, which you use in battles
+-in battles you use a random pool of letters and the letters you collected to make a word which does damage
+-some words have special effects
+-mining out a block costs energy
+-while mining you can find:
+	-empty space
+	-a wall (unpassable)
+	-a door (unpassable) which opens with a key
+	-some treasure (energy or a letter)
+	-a creep (unpassable) which after defeat gives treasure
+	-a shop where you can buy energy with letters, and maybe some letters with letters or energy
+	-a casino where you can give a letter to get none, one or more or energy
+-when you move to a block 
+	-the content appears in a sidebar
+	-when its unmined you mine it out but stay in place
+	-when its a wall nothing happens
+	-when its treasure you get a popup which allows you to pick it up or not
+	-when its a creep you immediatly battle and stay in place if you don't win
+	-when its a shop you get a shop popup
+	-when its a casino you get a casino popup
+-events:
+	-happen when moved on eventsquares like altar,chest,bookshelf,other things
+	-possible events:
+		-get random treasure
+		-damage player
+		-summon creep
+		-ask for a word, give treasure if correct		
+-player stats:
+	-energy
+		-spend to mine out square
+		-spend at events
+		-get as reward for kill
+		-get at events
+	-letters
+		-used as weapon against creeps
+		-used for some events
+		-can carry only a certain amount
+	-health
+		-if 0 -> game over
+		-
+	-shield
+		-regenerates every battle
+	-keys
+-letter stats
+	-letterstring
+	-value
+	-effect
+	-isCapital
+-treasure:
+	-some energy
+
+

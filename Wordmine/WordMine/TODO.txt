@@ -1,0 +1,27 @@
+﻿-make buttons work after scaling
+
+-show info for player
+
+
+-make items
+-make random shit
+
+-decide how interface will look
+
+-show info for selected tile
+
+-add stairsdown event
+-make map zoomed in and draggable so the squares can be clickable, might not be necessay if there is a better ui
+-make ui with up,down,left,right,mode and action
+-mode changes from controlling the player to controlling the selection, for more complex actions
+-action
+
+
+
+
+
+
+-make combat-system
+	-make a new screen
+	-show letters to be picked
+	-show enemy
