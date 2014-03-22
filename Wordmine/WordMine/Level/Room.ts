@@ -47,7 +47,7 @@ module WM.Level {
                             
                         }
                         if (target.Event != "") {
-                            wm.Level.ShowEvent(target.Event);
+                            wm.Level.ShowEvent(target.Event,target);
                         }
                     }
                     else {

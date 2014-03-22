@@ -137,8 +137,8 @@ var WM;
 (function (WM) {
     (function (Dialog) {
         var Event = (function () {
-            function Event(game, eventdata) {
-                this.Done = false;
+            function Event(game, eventdata, cell) {
+                this.Cell = cell;
                 this.Panels = new Array();
                 for (var i = 0; i < eventdata.panels.length; i++) {
                     var p = new WM.Dialog.EventPanel(game, eventdata.panels[i]);
@@ -151,12 +151,17 @@ var WM;
                     this.CurrentPanel = this.Panels[nr];
                     this.CurrentPanel.Show();
                 }
-                if (nr < 0) {
+                if (nr == -1) {
                     this.CurrentPanel.Hide();
-                    this.Done = true;
+                    this.Cell.Event = "";
                     wm.Level.Dialog = null;
-                } else {
+                    wm.Level.DrawRoom();
+                } else if (nr == -2) {
                     this.CurrentPanel.Hide();
+                    wm.Level.Dialog = null;
+                    wm.Level.DrawRoom();
+                } else {
+                    this.CurrentPanel.Hide(); //close panel and show next
                     this.CurrentPanel = this.Panels[nr];
                     this.CurrentPanel.Show();
                 }
@@ -239,18 +244,37 @@ var WM;
             Level.prototype.create = function () {
                 wm.Level = this;
 
+                //  Creates a blank tilemap
+                this.Map = this.game.add.tilemap();
+
+                //  Creates a layer and sets-up the map dimensions.
+                //  In this case the map is 30x30 tiles in size and the tiles are 32x32 pixels in size.
+                var layer = this.Map.create('level1', 30, 30, 32, 32);
+
+                //  Add a Tileset image to the map
+                this.Map.addTilesetImage('tiles');
+
                 //this.world.scale.x = 1.6;
                 //this.world.scale.y = 1.6;
                 this.Player = wm.Player;
                 this.Lvl = new WM.Level.LvlData(WM.G.LevelWidth, WM.G.LevelHeight);
                 this.Room = this.Lvl.Cells[1][1];
-                this.Map = this.add.tilemap("map", "tiles");
-                this.Map.addTilesetImage("TileA2", "tiles");
-                this.FloorLayer = this.Map.createLayer("floor");
+                this.Map = this.game.add.tilemap();
+
+                //this.Map = this.add.tilemap("map");
+                //this.Map.addTilesetImage("TileA2", "tiles");
+                this.FloorLayer = this.Map.create("floor", WM.G.RoomWidth, WM.G.RoomHeight, 32, 32);
+                this.Map.addTilesetImage("tiles");
+
+                //this.Map.create(, G.RoomWidth, G.RoomHeight, G.CellSize, G.CellSize);
+                //this.Map.addTilesetImage("tiles");
+                //this.FloorLayer = this.Map.createLayer("floor");
+                console.log("hgghhg" + this.FloorLayer.name, "________" + this.FloorLayer.layer["name"]);
                 this.EventsLayer = this.Map.createLayer("events");
                 this.WallsLayer = this.Map.createLayer("walls");
                 this.UnminedLayer = this.Map.createLayer("unmined");
                 this.UnminedLayer.alpha = 0.95;
+                this.FloorLayer.resizeWorld();
                 this.Cursors = this.input.keyboard.createCursorKeys();
                 var mapwidth = this.Room.Width * WM.G.CellSize;
                 var mapheight = this.Room.Height * WM.G.CellSize;
@@ -312,8 +336,8 @@ var WM;
                 if (this.Dialog == null) {
                     var px = Math.floor((pointer.layerX / WM.G.CellSize) / this.world.scale.x);
                     var py = Math.floor((pointer.layerY / WM.G.CellSize) / this.world.scale.y);
-                    this.Marker.x = px * WM.G.CellSize;
-                    this.Marker.y = py * WM.G.CellSize;
+                    this.Marker.world.x = px * WM.G.CellSize;
+                    this.Marker.world.y = py * WM.G.CellSize;
                     console.log(this.Room.Cells[py][px]);
                     //this.Room.MoveToTile(this.Player, px, py);
                     //this.DrawCell(py, px, this.UnminedLayer);
@@ -332,10 +356,10 @@ var WM;
                     this.DrawCell(target.RoomX, target.RoomY, this.EventsLayer);
                     this.DrawCell(target.RoomX, target.RoomY, this.WallsLayer);
                 }
-                this.PlayerStats.content = "Energy: " + this.Player.Energy;
+                this.PlayerStats.setText("Energy: " + this.Player.Energy);
             };
-            Level.prototype.ShowEvent = function (event) {
-                this.Dialog = new WM.Dialog.Event(this.game, WM.G.events[event]);
+            Level.prototype.ShowEvent = function (event, cell) {
+                this.Dialog = new WM.Dialog.Event(this.game, WM.G.events[event], cell);
                 this.Dialog.ShowPanel();
             };
 
@@ -364,7 +388,11 @@ var WM;
             };
             Level.prototype.DrawCell = function (x, y, layer) {
                 var index = this.Room.Cells[x][y].GetTileIndex(layer.layer["name"]);
+
+                //index = (index == null) ? 1 : index;
+                console.log(index, x, y, layer.layer["name"]);
                 this.Map.putTile(index, y, x, layer);
+                console.log(this.Map.getTile(y, x, layer));
             };
             Level.prototype.update = function () {
                 //this.game.debug.renderRectangle(this.ButtonDown);
@@ -413,49 +441,41 @@ var WM;
     (function (States) {
         var Preload = (function (_super) {
             __extends(Preload, _super);
+            //counter: number;
             function Preload() {
                 _super.call(this);
             }
             Preload.prototype.preload = function () {
-                //  Set-up our preloader sprite
-                //this.load.setPreloadSprite(this.preloadBar);
-                //  Load our actual games assets
-                //this.load.image('titlepage', 'assets/titlepage.jpg');
-                //this.load.image('logo', 'assets/logo.png');
-                //this.load.audio('music', 'assets/title.mp3', true);
-                //this.load.spritesheet('simon', 'assets/simon.png', 58, 96, 5);
-                //this.load.image('level1', 'assets/level1.png');
                 this.game.load.image('player', '/Wordmine/Assets/player.png');
-
                 this.game.load.tilemap('map', '/Wordmine/Assets/basemap.map', null, Phaser.Tilemap.TILED_JSON);
-
-                this.game.load.spritesheet("tiles", "/Wordmine/Assets/t000.png", WM.G.CellSize, WM.G.CellSize); // ti .tileset('tiles', '/Wordmine/Assets/tiles.png', 32, 32,0,0, 1);
-                //this.game.load.tilemap("tiles2", null, "0,0,0,0,0\n1,1,0,0,1\n1,0,0,0,1\n");
-                //this.load.image('car', 'assets/sprites/car90.png');
+                this.game.load.image('tiles', "/Wordmine/Assets/t000.png");
             };
 
             Preload.prototype.create = function () {
                 this.game.stage.backgroundColor = '#444448';
                 this.preloadBar = new WM.UI.ProgressBar(this.game, 100, 50);
-                this.counter = 0.1;
+
+                //this.counter = 0.1;
                 //this.game.stage.scaleMode = Phaser.StageScaleMode.SHOW_ALL;
                 //this.game.stage.scale.setShowAll();
                 //this.game.stage.scale.pageAlignHorizontally = true;
                 //this.game.stage.scale.pageAlignVertically = true;
                 //this.game.stage.scale.refresh();
-                //var tween = this.add.tween(this.preloadBar).to({ alpha: 0 }, 1000, Phaser.Easing.Linear.None, true);
-                //tween.onComplete.add(this.startMainMenu, this);
+                var tween = this.add.tween(this.preloadBar).to({ FilledAmount: 1 }, 1000, Phaser.Easing.Linear.None, true);
+                tween.onComplete.add(this.startMainMenu, this);
+            };
+            Preload.prototype.startMainMenu = function () {
+                this.game.state.start("menu", true, false);
             };
             Preload.prototype.render = function () {
                 //this.game.debug.renderInputInfo(16, 16);
             };
             Preload.prototype.update = function () {
-                this.counter -= this.game.time.elapsed / 1000;
-                this.preloadBar.SetAmount(this.counter);
-                if (this.counter < 0) {
-                    this.preloadBar.destroy(true);
-                    this.game.state.start("menu", true, false);
-                }
+                //this.counter -= this.game.time.elapsed /1000;
+                //this.preloadBar.SetAmount(this.counter);
+                //if (this.counter < 0) {
+                //    this.preloadBar.destroy(true);
+                //}
                 //this.game.physics.moveToPointer(this.button,300,this.game.input.activePointer);
             };
             return Preload;
@@ -759,7 +779,7 @@ var WM;
                                 target.Treasure = null;
                             }
                             if (target.Event != "") {
-                                wm.Level.ShowEvent(target.Event);
+                                wm.Level.ShowEvent(target.Event, target);
                             }
                         } else {
                             if (target.Passable)
@@ -1016,10 +1036,10 @@ var WM;
             }
             FilledRect.getBMD = function (game, width, height, color) {
                 if (typeof color === "undefined") { color = "#fff"; }
-                var bmd = new Phaser.BitmapData(game, width, height);
-                bmd.beginFill(color);
-                bmd.rect(0, 0, width, height);
-                bmd.fill();
+                var bmd = new Phaser.BitmapData(game, "bla", width, height);
+                bmd.context.fillStyle = color; // beginFill(color);
+                bmd.context.rect(0, 0, width, height);
+                bmd.context.fill();
                 return bmd;
             };
             return FilledRect;
@@ -1037,13 +1057,28 @@ var WM;
                 if (typeof width === "undefined") { width = 100; }
                 if (typeof height === "undefined") { height = 50; }
                 _super.call(this, game, null, "progressbar");
+                this._filled = 0;
                 this.padding = 5;
                 this.dpadding = this.padding * 2;
                 this.background = this.add(new WM.UI.FilledRect(game, width, height));
                 this.bar = this.add(new WM.UI.FilledRect(game, width - this.dpadding, height - this.dpadding, "#000"));
                 this.bar.x += this.padding * 3;
                 this.bar.y += this.padding * 3;
+                this.width = width;
+                this.height = height;
             }
+            Object.defineProperty(ProgressBar.prototype, "FilledAmount", {
+                get: function () {
+                    return this._filled;
+                },
+                set: function (percent) {
+                    this._filled = percent;
+                    this.SetAmount(percent);
+                },
+                enumerable: true,
+                configurable: true
+            });
+
             ProgressBar.prototype.SetAmount = function (percent) {
                 if (percent >= 0 && percent <= 1) {
                     var w = (this.background.width - this.dpadding) * percent;
@@ -1071,16 +1106,16 @@ var WM;
                 this.button = this.add(new Phaser.Button(this.game, 0, 0, "", callback, context));
                 this.button.loadTexture(WM.UI.FilledRect.getBMD(this.game, this.w, this.h, color), 0);
                 this.text = this.add(new Phaser.Text(this.game, 0, 0, text, WM.G.style));
-                this.text.anchor.setTo(0.5, 0.5);
+                this.text.anchor.set(0.5, 0.5);
                 this.text.x = this.button.width / 2;
                 this.text.y = this.button.height / 2;
                 this.Hide();
             }
             TextButton.prototype.Hide = function () {
-                this.button.alive = this.button.exists = this.button.visible = this.text.alive = this.text.exists = this.text.visible = false;
+                this.exists = false;
             };
             TextButton.prototype.Show = function () {
-                this.button.alive = this.button.exists = this.button.visible = this.text.alive = this.text.exists = this.text.visible = true;
+                this.exists = true;
             };
             return TextButton;
         })(Phaser.Group);
@@ -1162,9 +1197,8 @@ var WM;
                 this.x = game.width / 4;
                 this.y = 100;
                 this.padding = 10;
-                this.background = this.add(new Phaser.Graphics(game, 0, 0));
-                this.background.beginFill(0xeeeeee);
-                this.background.drawRect(0, 0, game.width / 2, game.height / 1.5);
+                this.background = this.add(new WM.UI.FilledRect(game, game.width / 2, game.height / 1.5, "#eeeeee"));
+
                 this.options = new Array();
 
                 for (var j = 0; j < panel.options.length; j++) {
@@ -1192,15 +1226,15 @@ var WM;
                 for (var i = 0; i < this.options.length; i++) {
                     this.options[i].Show();
                 }
-                this.text.alive = this.text.exists = this.text.visible = true;
-                this.background.alive = this.background.exists = this.background.visible = true;
+                this.text.exists = true;
+                this.background.exists = true;
             };
             EventPanel.prototype.Hide = function () {
                 for (var i = 0; i < this.options.length; i++) {
                     this.options[i].Hide();
                 }
-                this.text.alive = this.text.exists = this.text.visible = false;
-                this.background.alive = this.background.exists = this.background.visible = false;
+                this.text.exists = false;
+                this.background.exists = false;
             };
             return EventPanel;
         })(Phaser.Group);
@@ -1208,7 +1242,6 @@ var WM;
     })(WM.Dialog || (WM.Dialog = {}));
     var Dialog = WM.Dialog;
 })(WM || (WM = {}));
-/// <reference path="jquery.d.ts"/>
 /// <reference path="states/boot.ts" />
 /// <reference path="states/combat.ts" />
 /// <reference path="states/level.ts" />
@@ -1441,7 +1474,7 @@ var WM;
             function TextSpark(txt, px, py, color) {
                 if (typeof color === "undefined") { color = "#fff"; }
                 this.Text = wm.Level.game.add.text(px + (WM.G.CellSize / 2), py + (WM.G.CellSize / 2), txt, { fill: color });
-                this.Text.anchor.setTo(0.5, 0.5);
+                this.Text.anchor.set(0.5, 0.5);
 
                 //var game.add.tween(this.Text);
                 //this.Text.style.fill = color;
@@ -1456,64 +1489,3 @@ var WM;
     })(WM.UI || (WM.UI = {}));
     var UI = WM.UI;
 })(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (Util) {
-        var TilemapJSON = (function () {
-            function TilemapJSON() {
-            }
-            return TilemapJSON;
-        })();
-        Util.TilemapJSON = TilemapJSON;
-        var LayerData = (function () {
-            function LayerData() {
-            }
-            return LayerData;
-        })();
-        Util.LayerData = LayerData;
-        var TileSetData = (function () {
-            function TileSetData() {
-            }
-            return TileSetData;
-        })();
-        Util.TileSetData = TileSetData;
-    })(WM.Util || (WM.Util = {}));
-    var Util = WM.Util;
-})(WM || (WM = {}));
-//{ "height":40,
-// "layers":[
-//        {
-//            "data": [30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 14, 15, 16, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 46, 30, 30, 30, 30, 30, 30, 31, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 46, 14, 15, 16, 30, 31, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 14, 15, 16, 30, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 30, 30, 30, 31, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 31, 22, 23, 24, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 32, 30, 30, 30, 30, 30, 30, 31, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 1, 3, 30, 30, 31, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 25, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 27, 30, 9, 11, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 30, 9, 11, 30, 30, 30, 30, 6, 7, 7, 7, 8, 30, 46, 30, 30, 30, 30, 30, 30, 30, 30, 40, 30, 30, 30, 30, 33, 34, 36, 42, 37, 34, 34, 34, 34, 34, 34, 34, 35, 30, 9, 11, 30, 30, 30, 30, 14, 15, 15, 15, 16, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 33, 34, 35, 30, 33, 34, 34, 34, 34, 34, 34, 34, 35, 30, 9, 11, 30, 30, 30, 30, 14, 15, 15, 15, 12, 8, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 38, 30, 30, 33, 34, 35, 31, 33, 34, 34, 34, 34, 34, 34, 34, 35, 30, 9, 11, 30, 30, 30, 30, 22, 23, 5, 15, 15, 16, 30, 30, 30, 30, 30, 30, 30, 30, 48, 38, 30, 30, 30, 30, 33, 34, 44, 26, 45, 34, 34, 34, 34, 34, 34, 34, 35, 30, 9, 11, 30, 30, 30, 30, 30, 30, 14, 15, 15, 16, 30, 30, 30, 30, 30, 30, 40, 30, 30, 30, 40, 30, 30, 30, 33, 34, 34, 34, 34, 34, 34, 34, 36, 42, 37, 34, 35, 30, 9, 11, 30, 30, 30, 30, 30, 31, 22, 23, 23, 24, 30, 30, 30, 40, 30, 30, 30, 30, 40, 38, 30, 30, 38, 30, 41, 42, 42, 42, 42, 37, 34, 34, 44, 26, 45, 34, 35, 30, 9, 11, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 39, 30, 30, 30, 38, 30, 40, 30, 30, 30, 30, 30, 30, 30, 30, 41, 42, 42, 42, 42, 42, 42, 43, 30, 9, 11, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 39, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 9, 11, 30, 30, 30, 31, 30, 30, 30, 30, 30, 30, 30, 30, 30, 7, 7, 8, 1, 2, 2, 2, 2, 2, 3, 30, 30, 30, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 29, 11, 30, 30, 30, 30, 31, 30, 31, 30, 30, 30, 30, 30, 30, 15, 15, 16, 9, 10, 10, 10, 10, 10, 11, 30, 30, 30, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 30, 30, 30, 31, 30, 30, 30, 30, 30, 30, 30, 30, 30, 23, 23, 24, 17, 18, 18, 18, 18, 18, 19, 30, 30, 30, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19, 30, 30, 30, 30, 30, 30, 32, 30, 30, 30, 30, 30, 30, 30, 30, 39, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 30, 30, 30, 30, 30, 30, 32, 31, 30, 30, 30, 30, 39, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 32, 39, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 30, 30, 30, 30, 30, 30, 25, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 27, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 46, 30, 33, 34, 34, 34, 34, 34, 34, 34, 34, 36, 42, 37, 35, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 33, 34, 34, 34, 34, 34, 34, 34, 34, 35, 48, 33, 35, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 30, 30, 30, 30, 30, 47, 33, 34, 34, 34, 34, 34, 34, 34, 34, 35, 48, 33, 35, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 39, 30, 30, 30, 33, 34, 34, 34, 34, 34, 34, 34, 34, 35, 48, 33, 35, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 33, 34, 34, 34, 34, 34, 34, 34, 34, 44, 26, 45, 35, 30, 30, 30, 30, 30, 30, 39, 30, 39, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 47, 30, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 48, 30, 30, 30, 30, 30, 39, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 41, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 43, 30, 30, 30, 38, 30, 38, 30, 30, 30, 30, 32, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 38, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 40, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 30, 30, 30, 30, 38, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 40, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 40, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 30, 31, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 6, 7, 7, 7, 7, 8, 30, 30, 30, 30, 30, 30, 30, 40, 30, 40, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 26, 26, 26, 26, 26, 26, 26, 45, 34, 34, 34, 34, 44, 27, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 30, 30, 30, 30, 40, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 30, 30, 30, 32, 30, 30, 30, 30, 30, 30, 30, 30, 32, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 35, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
-//            "height": 40,
-//            "name": "Ground",
-//            "opacity": 1,
-//            "type": "tilelayer",
-//            "visible": true,
-//            "width": 40,
-//            "x": 0,
-//            "y": 0
-//        }],
-// "orientation":"orthogonal",
-// "properties":
-//    {
-//    },
-// "tileheight":32,
-// "tilesets":[
-//        {
-//            "firstgid": 1,
-//            "image": "C:\/Program Files (x86)\/Tiled\/examples\/tmw_desert_spacing.png",
-//            "imageheight": 199,
-//            "imagewidth": 265,
-//            "margin": 1,
-//            "name": "Desert",
-//            "properties":
-//            {
-//            },
-//            "spacing": 1,
-//            "tileheight": 32,
-//            "tilewidth": 32
-//        }],
-// "tilewidth":32,
-// "version":1,
-// "width":40
-//}

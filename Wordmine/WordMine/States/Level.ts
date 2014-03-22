@@ -26,19 +26,49 @@ module WM.States {
 
         create() {
             wm.Level = this;
+
+            //  Creates a blank tilemap
+
+            this.Map = this.game.add.tilemap();
+
+
+
+            //  Creates a layer and sets-up the map dimensions.
+
+            //  In this case the map is 30x30 tiles in size and the tiles are 32x32 pixels in size.
+
+            var layer = this.Map.create('level1', 30, 30, 32, 32);
+
+
+
+            //  Add a Tileset image to the map
+
+            this.Map.addTilesetImage('tiles');
+
+
+
+
+
             //this.world.scale.x = 1.6;
             //this.world.scale.y = 1.6;
 
             this.Player = wm.Player;
             this.Lvl = new WM.Level.LvlData(G.LevelWidth, G.LevelHeight);
             this.Room = this.Lvl.Cells[1][1];
-            this.Map = this.add.tilemap("map", "tiles");
-            this.Map.addTilesetImage("TileA2", "tiles");
-            this.FloorLayer = this.Map.createLayer("floor");
+            this.Map = this.game.add.tilemap();
+            //this.Map = this.add.tilemap("map");
+            //this.Map.addTilesetImage("TileA2", "tiles");
+            this.FloorLayer=this.Map.create("floor", G.RoomWidth, G.RoomHeight,32,32);
+            this.Map.addTilesetImage("tiles");
+            //this.Map.create(, G.RoomWidth, G.RoomHeight, G.CellSize, G.CellSize);
+            //this.Map.addTilesetImage("tiles");
+            //this.FloorLayer = this.Map.createLayer("floor");
+            console.log("hgghhg"+this.FloorLayer.name,"________"+ this.FloorLayer.layer["name"]);
             this.EventsLayer = this.Map.createLayer("events");
             this.WallsLayer = this.Map.createLayer("walls");
             this.UnminedLayer = this.Map.createLayer("unmined");
             this.UnminedLayer.alpha = 0.95;
+            this.FloorLayer.resizeWorld();
             this.Cursors = this.input.keyboard.createCursorKeys();
             var mapwidth = this.Room.Width * G.CellSize;
             var mapheight = this.Room.Height * G.CellSize;
@@ -85,8 +115,8 @@ module WM.States {
             if (this.Dialog == null) {
                 var px = Math.floor((pointer.layerX / G.CellSize) /this.world.scale.x);
                 var py = Math.floor((pointer.layerY / G.CellSize) / this.world.scale.y)
-                this.Marker.x = px * G.CellSize;
-                this.Marker.y = py * G.CellSize;
+                this.Marker.world.x = px * G.CellSize;
+                this.Marker.world.y = py * G.CellSize;
                 console.log(this.Room.Cells[py][px]);
                 
                 //this.Room.MoveToTile(this.Player, px, py);
@@ -107,10 +137,10 @@ module WM.States {
                 this.DrawCell(target.RoomX, target.RoomY, this.EventsLayer);
                 this.DrawCell(target.RoomX, target.RoomY, this.WallsLayer);
             }
-            this.PlayerStats.content = "Energy: " + this.Player.Energy;
+            this.PlayerStats.setText("Energy: " + this.Player.Energy);
         }
-        ShowEvent(event: string) {
-            this.Dialog = new Dialog.Event(this.game, G.events[event]);
+        ShowEvent(event: string,cell:Level.Cell) {
+            this.Dialog = new Dialog.Event(this.game, G.events[event],cell);
             this.Dialog.ShowPanel();
         }
  
@@ -138,9 +168,13 @@ module WM.States {
                 }
             }
         }
-        DrawCell(x, y, layer) {
+        DrawCell(x, y, layer: Phaser.TilemapLayer) {
             var index = this.Room.Cells[x][y].GetTileIndex(layer.layer["name"]);
+
+            //index = (index == null) ? 1 : index;
+            console.log(index, x, y, layer.layer["name"]);
             this.Map.putTile(index, y, x, layer);
+            console.log(this.Map.getTile(y, x, layer));
         }
         update() {
             //this.game.debug.renderRectangle(this.ButtonDown);

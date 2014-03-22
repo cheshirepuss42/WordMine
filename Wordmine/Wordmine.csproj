@@ -42,7 +42,6 @@
     <TypeScriptCompile Include="WordMine\Dialog\EventPanel.ts" />
     <TypeScriptCompile Include="WordMine\G.ts" />
     <TypeScriptCompile Include="WordMine\Game.ts" />
-    <TypeScriptCompile Include="WordMine\jquery.d.ts" />
     <TypeScriptCompile Include="WordMine\Letter\Letter.ts" />
     <TypeScriptCompile Include="WordMine\Level\Cell.ts" />
     <TypeScriptCompile Include="WordMine\Level\LvlData.ts" />

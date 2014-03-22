@@ -2,9 +2,9 @@ module WM.Dialog {
     export class Event {
         Panels: Array<EventPanel>;
         CurrentPanel: EventPanel;
-        Done: boolean;
-        constructor(game: Phaser.Game, eventdata: any) {
-            this.Done = false;
+        Cell: Level.Cell;
+        constructor(game: Phaser.Game, eventdata: any, cell: Level.Cell) {
+            this.Cell = cell;
             this.Panels = new Array<EventPanel>();
             for (var i = 0; i < eventdata.panels.length; i++) {
                 var p = new EventPanel(game, eventdata.panels[i]);
@@ -17,13 +17,19 @@ module WM.Dialog {
                 this.CurrentPanel = this.Panels[nr];
                 this.CurrentPanel.Show();
             }
-            if (nr < 0) {//close panel, end event
-                this.CurrentPanel.Hide();                                
-                this.Done = true;
+            if (nr == -1) {//close panel, remove event
+                this.CurrentPanel.Hide();
+                this.Cell.Event = "";
                 wm.Level.Dialog = null;
+                wm.Level.DrawRoom();
+            }
+            else if (nr == -2) {//close panel, event stays
+                this.CurrentPanel.Hide();
+                wm.Level.Dialog = null;
+                wm.Level.DrawRoom();
             }
             else {
-                this.CurrentPanel.Hide();
+                this.CurrentPanel.Hide();//close panel and show next
                 this.CurrentPanel = this.Panels[nr];
                 this.CurrentPanel.Show();
             }
@@ -31,4 +37,3 @@ module WM.Dialog {
         }
     }
 } 
-

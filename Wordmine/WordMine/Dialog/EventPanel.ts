@@ -1,7 +1,7 @@
 module WM.Dialog {
     export class EventPanel extends Phaser.Group {
         //text: Phaser.Text;
-        background: Phaser.Graphics;
+        background: UI.FilledRect;
         text: Phaser.Text;
         image: string;//to be made
         options: Array<EventOption>;
@@ -11,9 +11,8 @@ module WM.Dialog {
             this.x = game.width / 4;
             this.y = 100;
             this.padding = 10;
-            this.background = this.add(new Phaser.Graphics(game, 0, 0));
-            this.background.beginFill(0xeeeeee);
-            this.background.drawRect(0, 0, game.width / 2, game.height / 1.5);
+            this.background = this.add(new UI.FilledRect(game,game.width / 2, game.height / 1.5,"#eeeeee"));
+
             this.options = new Array<EventOption>();
             
             for (var j = 0; j < panel.options.length; j++) {
@@ -41,16 +40,17 @@ module WM.Dialog {
             for (var i = 0; i < this.options.length; i++) {
                 this.options[i].Show();
             }
-            this.text.alive = this.text.exists = this.text.visible = true;
-            this.background.alive = this.background.exists = this.background.visible = true;
+            this.text.exists = true;
+            this.background.exists = true;
+            
         }
         Hide() {
             
             for (var i = 0; i < this.options.length; i++) {
                 this.options[i].Hide();
             }
-            this.text.alive = this.text.exists = this.text.visible = false;
-            this.background.alive = this.background.exists = this.background.visible = false;
+            this.text.exists = false;
+            this.background.exists = false;
         }
     }
 }  

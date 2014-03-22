@@ -1,4 +1,3 @@
-/// <reference path="jquery.d.ts"/> 
 /// <reference path="states/boot.ts" />
 /// <reference path="states/combat.ts" />
 /// <reference path="states/level.ts" />

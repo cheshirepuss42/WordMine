@@ -1,7 +1,9 @@
-﻿-make buttons work after scaling
-
--show info for player
-
+﻿-show info for player
+-Events:
+	-is by itself invisible
+	-when player moves on it, it executes before anything else
+	-when the dialog ends either the player is rebuffed, leaving the event intact and the player on the old tile
+	-or the event disappears and the player moves on the target, that should be part of the event
 
 -make items
 -make random shit
