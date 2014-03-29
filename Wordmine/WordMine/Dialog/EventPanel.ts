@@ -12,19 +12,16 @@ module WM.Dialog {
             this.y = 100;
             this.padding = 10;
             this.background = this.add(new UI.FilledRect(game,game.width / 2, game.height / 1.5,"#eeeeee"));
-
-            this.options = new Array<EventOption>();
-            
+            this.options = new Array<EventOption>();            
             for (var j = 0; j < panel.options.length; j++) {
-                var option = panel.options[j];console.log(option);
+                var option = panel.options[j];
                 if (Effect.Happens(option.conditions)) {
                     var effects = function () {
                         for (var i = 0; i < option.effects.length; i++) {
                             Effect.Call(option.effects[i])();
                         }
                     }
-                    var eopt = new EventOption(game, option.text, effects);   
-                    console.log(eopt);                
+                    var eopt = new EventOption(game, option.text, effects);                 
                     this.add(eopt);
                     eopt.y += 200 + ((this.options.length - 1) * eopt.h);
                     this.options.push(eopt);

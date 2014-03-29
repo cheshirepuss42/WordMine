@@ -1,6 +1,5 @@
 module WM.UI {
-    export class TextButton extends Phaser.Group {
- 
+    export class TextButton extends Phaser.Group { 
         w: number;
         h: number;
         button: Phaser.Button;

@@ -9,13 +9,11 @@ module WM.Dialog {
                     result = wm.Player.Has(elems[1]);
                 }
                 else {//is a direct call like wm.player.health
-                    console.log("happens?", elems);
                     elems[0] = elems[0].substr(1, elems[0].length - 1);//remove star
                     var call = elems[0].split('.');
                     var mod = elems[1];
                     var am = elems[2];
-                    var target = wm[call[0]][call[1]]; 
-                    console.log(target,call[0],call[1]);                                
+                    var target = wm[call[0]][call[1]];                         
                     switch (mod) {
                         case "true": result = target == true;break;
                         case "false": result = target == false;break;

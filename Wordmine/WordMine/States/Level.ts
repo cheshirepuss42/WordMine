@@ -1,7 +1,6 @@
 /// <reference path="../_reference.ts" />
 module WM.States {
     export class Level extends Phaser.State {
-        Letters: Array<Letter.Letter>;
         Dialog: Dialog.Event;
         Lvl: Level.LvlData;
         Room: Level.Room;
@@ -18,116 +17,94 @@ module WM.States {
         ButtonDown: UI.TextButton;
         ButtonLeft: UI.TextButton;
         ButtonRight: UI.TextButton;
-        constructor() {
-            super();
-        }
-        render() {
-        }
 
         create() {
+            //making this globally accessible, which makes handling some callbacks easier, might turn out to be a very bad idea
             wm.Level = this;
 
-            //  Creates a blank tilemap
+            //scaling the whole thing up, needs fixing
+            this.world.scale.x = 1.6;
+            this.world.scale.y = 1.6;
 
-            this.Map = this.game.add.tilemap();
-
-
-
-            //  Creates a layer and sets-up the map dimensions.
-
-            //  In this case the map is 30x30 tiles in size and the tiles are 32x32 pixels in size.
-
-            var layer = this.Map.create('level1', 30, 30, 32, 32);
-
-
-
-            //  Add a Tileset image to the map
-
-            this.Map.addTilesetImage('tiles');
-
-
-
-
-
-            //this.world.scale.x = 1.6;
-            //this.world.scale.y = 1.6;
-
-            this.Player = wm.Player;
+            //build entire level
             this.Lvl = new WM.Level.LvlData(G.LevelWidth, G.LevelHeight);
+
+            //currentroom is in the middle of 3x3
             this.Room = this.Lvl.Cells[1][1];
+
+            //make tilemap and add tilesheet
             this.Map = this.game.add.tilemap();
-            //this.Map = this.add.tilemap("map");
-            //this.Map.addTilesetImage("TileA2", "tiles");
-            this.FloorLayer=this.Map.create("floor", G.RoomWidth, G.RoomHeight,32,32);
             this.Map.addTilesetImage("tiles");
-            //this.Map.create(, G.RoomWidth, G.RoomHeight, G.CellSize, G.CellSize);
-            //this.Map.addTilesetImage("tiles");
-            //this.FloorLayer = this.Map.createLayer("floor");
-            console.log("hgghhg"+this.FloorLayer.name,"________"+ this.FloorLayer.layer["name"]);
-            this.EventsLayer = this.Map.createLayer("events");
-            this.WallsLayer = this.Map.createLayer("walls");
-            this.UnminedLayer = this.Map.createLayer("unmined");
+
+            //make floorlayer with tilemap.create
+            this.FloorLayer = this.Map.create("floor", G.RoomWidth, G.RoomHeight, G.CellSize, G.CellSize);
+
+            //make rest of layers with tilemap.createblanklayer
+            this.EventsLayer = this.Map.createBlankLayer("events", G.RoomWidth, G.RoomHeight,G.CellSize,G.CellSize);
+            this.WallsLayer = this.Map.createBlankLayer("walls", G.RoomWidth, G.RoomHeight, G.CellSize, G.CellSize);
+            this.UnminedLayer = this.Map.createBlankLayer("unmined", G.RoomWidth, G.RoomHeight, G.CellSize, G.CellSize);
+
+            //show a little of what is under the unminedlayer for debugging
             this.UnminedLayer.alpha = 0.95;
-            this.FloorLayer.resizeWorld();
-            this.Cursors = this.input.keyboard.createCursorKeys();
-            var mapwidth = this.Room.Width * G.CellSize;
-            var mapheight = this.Room.Height * G.CellSize;
-            this.PlayerStats = this.game.add.text(mapwidth, 0, "Energy: ", { fill: "#fff", font: "20px"});
 
-
-            var self = this;
-            this.Cursors.down.onDown.add(function () { self.MovePlayer("down"); }, this);
-            this.Cursors.up.onDown.add(function () { self.MovePlayer("up"); }, this);
-            this.Cursors.left.onDown.add(function () { self.MovePlayer("left"); }, this);
-            this.Cursors.right.onDown.add(function () { self.MovePlayer("right"); }, this);
-
-
+            //make the player, his view and his position
+            this.Player = wm.Player;
             this.Player.View = this.add.sprite(0, 0, "player"); 
-            //this.Player.View.anchor.setTo(0, 0); 
             this.Player.View.scale.setTo(0.9, 0.9);
-
             this.Player.Cell = this.Room.Middle();
             this.Player.Cell.MinedOut = true;
+
+            //make the stats in the right, where more ui will come
+            this.PlayerStats = this.game.add.text(G.MapWidth, 0, "Energy: ", { fill: "#fff", font: "20px" }); 
             
-            this.Marker = this.add.graphics(0,0);
-            this.Marker.lineStyle(2, 0xff0000, 1);
-            this.Marker.drawRect(0, 0, G.CellSize, G.CellSize);
+            //draw the room      
             this.DrawRoom();
+
+            //setup the buttons to allow player movement without keyboard
             this.ButtonDown = this.game.add.existing(new UI.TextButton(this.game, "down",50, 50, function () { wm.Level.MovePlayer("down"); }));
             this.ButtonUp = this.game.add.existing(new UI.TextButton(this.game, "up", 50, 50, function () { wm.Level.MovePlayer("up"); }));
             this.ButtonLeft = this.game.add.existing(new UI.TextButton(this.game, "left", 50, 50, function () { wm.Level.MovePlayer("left"); }));
             this.ButtonRight = this.game.add.existing(new UI.TextButton(this.game, "right", 50, 50, function () { wm.Level.MovePlayer("right"); }));
-            this.ButtonDown.x = mapwidth+25;
-            this.ButtonDown.y = mapheight;
+            this.ButtonDown.x = G.MapWidth+25;
+            this.ButtonDown.y = G.MapHeight;
             this.ButtonDown.Show();
-            this.ButtonUp.x = mapwidth+25;
-            this.ButtonUp.y = mapheight-100;
+            this.ButtonUp.x = G.MapWidth+25;
+            this.ButtonUp.y = G.MapHeight-100;
             this.ButtonUp.Show();
-            this.ButtonLeft.x = mapwidth;
-            this.ButtonLeft.y = mapheight-50;
+            this.ButtonLeft.x = G.MapWidth;
+            this.ButtonLeft.y = G.MapHeight-50;
             this.ButtonLeft.Show();
-            this.ButtonRight.x = mapwidth+50;
-            this.ButtonRight.y = mapheight-50;
+            this.ButtonRight.x = G.MapWidth+50;
+            this.ButtonRight.y = G.MapHeight-50;
             this.ButtonRight.Show();
+
+            //setup the keys allowing for player movement
+            this.Cursors = this.input.keyboard.createCursorKeys();
+            this.Cursors.down.onDown.add(function () { wm.Level.MovePlayer("down"); }, this);
+            this.Cursors.up.onDown.add(function () { wm.Level.MovePlayer("up"); }, this);
+            this.Cursors.left.onDown.add(function () { wm.Level.MovePlayer("left"); }, this);
+            this.Cursors.right.onDown.add(function () { wm.Level.MovePlayer("right"); }, this);
+
+            //set the marker that indicates the tile last clicked
+            this.Marker = this.add.graphics(0, 0);
+            this.Marker.lineStyle(2, 0xff0000, 1);
+            this.Marker.drawRect(0, 0, G.CellSize, G.CellSize);
+
+            //added a handler for clicking the tile
             this.input.onDown.add(this.ClickTile, this);
         }
+        //handles a click on a tile, only if there is no dialog running
         ClickTile(obj, pointer) {
             if (this.Dialog == null) {
                 var px = Math.floor((pointer.layerX / G.CellSize) /this.world.scale.x);
-                var py = Math.floor((pointer.layerY / G.CellSize) / this.world.scale.y)
-                this.Marker.world.x = px * G.CellSize;
-                this.Marker.world.y = py * G.CellSize;
-                console.log(this.Room.Cells[py][px]);
-                
-                //this.Room.MoveToTile(this.Player, px, py);
-                //this.DrawCell(py, px, this.UnminedLayer);
-                //this.DrawCell(py, px, this.FloorLayer);
-                //this.DrawCell(py, px, this.EventsLayer);
-                //this.DrawCell(py, px, this.WallsLayer);
-                //this.ShowEvent("first");
+                var py = Math.floor((pointer.layerY / G.CellSize) / this.world.scale.y);
+                if (this.Room.Inside(py, px)) {
+                    console.log(this.Room.Cells[py][px], px, py);
+                    this.Marker.position.set(px * G.CellSize, py * G.CellSize);
+                }
             }
-
         }
+        //handles player interaction with tile in given direction. likely moves the player there too. updates the view of the entered cell
         MovePlayer(dir:string) {
             var target = this.Room.GetNeighbour(dir, this.Player.Cell.RoomX, this.Player.Cell.RoomY);
             if (target != null) {
@@ -139,28 +116,26 @@ module WM.States {
             }
             this.PlayerStats.setText("Energy: " + this.Player.Energy);
         }
-        ShowEvent(event: string,cell:Level.Cell) {
+        //show the dialog of the given event
+        ShowDialog(event: string,cell:Level.Cell) {
             this.Dialog = new Dialog.Event(this.game, G.events[event],cell);
             this.Dialog.ShowPanel();
         }
- 
+        //moves player to entrance in new room corresponding to exit 
         HandleExit(exit: Level.RoomExit) {
             this.Room = exit.TargetRoom;
             this.Player.Cell = exit.EntranceCell();
             this.Player.Cell.MinedOut = true;
             this.DrawRoom();
         }
-        Fight() {
-
-            //initiate combat screen
-        }
+        //draw all layers of current room
         DrawRoom() {
             this.DrawLayer(this.FloorLayer);
             this.DrawLayer(this.WallsLayer);
             this.DrawLayer(this.EventsLayer);
             this.DrawLayer(this.UnminedLayer);
-            //this.Map.setCollisionBetween(156, 157, true, this.WallsLayer); 
         }
+        //draws each cell of a layer
         DrawLayer(layer: Phaser.TilemapLayer) {
             for (var i = 0; i < this.Room.Height; i++) {
                 for (var j = 0; j < this.Room.Width; j++) {
@@ -168,19 +143,14 @@ module WM.States {
                 }
             }
         }
-        DrawCell(x, y, layer: Phaser.TilemapLayer) {
-            var index = this.Room.Cells[x][y].GetTileIndex(layer.layer["name"]);
-
-            //index = (index == null) ? 1 : index;
-            console.log(index, x, y, layer.layer["name"]);
-            this.Map.putTile(index, y, x, layer);
-            console.log(this.Map.getTile(y, x, layer));
+        //draws a cell in a layer, gets tilesheet-index for layer from Cell.gettileindex based on the layername 
+        DrawCell(x, y, layer: Phaser.TilemapLayer) {        
+            this.Map.putTile(this.Room.Cells[x][y].GetTileIndex(layer.layer["name"]), y, x, layer);
         }
         update() {
-            //this.game.debug.renderRectangle(this.ButtonDown);
 
-            //this.game.debug.renderSpriteCorners(this.ButtonDown, true, true);
-
+        }
+        render() {
         }
     }
 }

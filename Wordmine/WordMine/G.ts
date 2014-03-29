@@ -5,7 +5,10 @@ module WM {
         static RoomHeight: number = 11;
         static LevelWidth: number = 3;
         static LevelHeight: number = 3;
+        static get MapWidth(): number { return this.CellSize * this.RoomWidth; }
+        static get MapHeight(): number { return this.CellSize * this.RoomHeight; }
         static style: any = { font: "16px Arial" };
+        //data for roomsections, might move this to seperate thing and preload it, same for events
         static RoomSections: any = [
             {
                 "type": "fourth",

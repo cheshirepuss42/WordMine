@@ -7,7 +7,6 @@ module WM.Treasure {
             this.Resources *= level;
         }
         Handle(player: Player.Player) {
-            console.log(player.Energy);
             player.Energy += this.Resources;
            
         }

@@ -8,7 +8,7 @@ module WM.UI {
         }
         static getBMD(game: Phaser.Game, width: number, height: number, color: string= "#fff"): Phaser.BitmapData {
             var bmd = new Phaser.BitmapData(game,"bla", width, height);
-            bmd.context.fillStyle = color;// beginFill(color);
+            bmd.context.fillStyle = color;
             bmd.context.rect(0, 0, width, height);
             bmd.context.fill();
             return bmd;

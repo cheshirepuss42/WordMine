@@ -21,6 +21,7 @@ module WM.Util {
             }
             return str;
         }
+        Dump() { console.log(this.AsString()); }
         GetNeighbour(dir: string, x: number, y: number): T {
             var nx = x, ny = y;
             switch (dir) {
