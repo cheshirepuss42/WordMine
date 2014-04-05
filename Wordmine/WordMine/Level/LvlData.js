@@ -11,12 +11,14 @@ var WM;
             __extends(LvlData, _super);
             function LvlData(width, height) {
                 _super.call(this, width, height);
+
                 for (var i = 0; i < this.Height; i++) {
                     this.Cells[i] = new Array();
                     for (var j = 0; j < this.Width; j++) {
                         this.Cells[i][j] = new WM.Level.Room(WM.G.RoomWidth, WM.G.RoomHeight, i, j);
                     }
                 }
+
                 this.SetExits();
             }
             LvlData.prototype.SetExits = function () {

@@ -10,23 +10,16 @@ var WM;
         var Menu = (function (_super) {
             __extends(Menu, _super);
             function Menu() {
-                _super.call(this);
+                _super.apply(this, arguments);
             }
-            Menu.prototype.render = function () {
-            };
-
             Menu.prototype.create = function () {
-                this.game.stage.backgroundColor = "337799";
-                this.button = this.game.add.existing(new WM.UI.TextButton(this.game, "start game", 300, 100, this.bla));
+                this.button = this.game.add.existing(new WM.UI.TextButton(this.game, "start game", 300, 100, this.Start));
                 this.button.x = (this.game.width / 2) - (this.button.w / 2);
                 this.button.y = (this.game.height / 2) - (this.button.h / 2);
                 this.button.Show();
             };
-            Menu.prototype.bla = function () {
+            Menu.prototype.Start = function () {
                 this.game.state.start("level", true, false);
-            };
-
-            Menu.prototype.update = function () {
             };
             return Menu;
         })(Phaser.State);

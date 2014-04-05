@@ -45,7 +45,7 @@ module WM.Level {
             switch (layername) {
                 case "floor": index = 39; break;
                 case "walls": index = (this.Passable) ? index : 91;break;
-                case "events": index = (this.Event == "") ? index : 19; index = (this.Treasure == null) ? index : 9; break;
+                case "events": if (this.Event != "") { index = 25; } else if (this.Treasure != null) { index = 9; } break;
                 case "unmined": index = (this.MinedOut) ? index : 37; break;
             }
             return index;

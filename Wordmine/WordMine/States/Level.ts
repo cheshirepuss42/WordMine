@@ -23,8 +23,8 @@ module WM.States {
             wm.Level = this;
 
             //scaling the whole thing up, needs fixing
-            this.world.scale.x = 1.6;
-            this.world.scale.y = 1.6;
+            //this.world.scale.x = 1.6;
+            //this.world.scale.y = 1.6; 
 
             //build entire level
             this.Lvl = new WM.Level.LvlData(G.LevelWidth, G.LevelHeight);
@@ -61,10 +61,10 @@ module WM.States {
             this.DrawRoom();
 
             //setup the buttons to allow player movement without keyboard
-            this.ButtonDown = this.game.add.existing(new UI.TextButton(this.game, "down",50, 50, function () { wm.Level.MovePlayer("down"); }));
-            this.ButtonUp = this.game.add.existing(new UI.TextButton(this.game, "up", 50, 50, function () { wm.Level.MovePlayer("up"); }));
-            this.ButtonLeft = this.game.add.existing(new UI.TextButton(this.game, "left", 50, 50, function () { wm.Level.MovePlayer("left"); }));
-            this.ButtonRight = this.game.add.existing(new UI.TextButton(this.game, "right", 50, 50, function () { wm.Level.MovePlayer("right"); }));
+            this.ButtonDown = this.game.add.existing(new UI.TextButton(this.game, "down",50, 50, function () { wm.Level.HandleInput("down"); }));
+            this.ButtonUp = this.game.add.existing(new UI.TextButton(this.game, "up", 50, 50, function () { wm.Level.HandleInput("up"); }));
+            this.ButtonLeft = this.game.add.existing(new UI.TextButton(this.game, "left", 50, 50, function () { wm.Level.HandleInput("left"); }));
+            this.ButtonRight = this.game.add.existing(new UI.TextButton(this.game, "right", 50, 50, function () { wm.Level.HandleInput("right"); }));
             this.ButtonDown.x = G.MapWidth+25;
             this.ButtonDown.y = G.MapHeight;
             this.ButtonDown.Show();
@@ -80,10 +80,10 @@ module WM.States {
 
             //setup the keys allowing for player movement
             this.Cursors = this.input.keyboard.createCursorKeys();
-            this.Cursors.down.onDown.add(function () { wm.Level.MovePlayer("down"); }, this);
-            this.Cursors.up.onDown.add(function () { wm.Level.MovePlayer("up"); }, this);
-            this.Cursors.left.onDown.add(function () { wm.Level.MovePlayer("left"); }, this);
-            this.Cursors.right.onDown.add(function () { wm.Level.MovePlayer("right"); }, this);
+            this.Cursors.down.onDown.add(function () {wm.Level.HandleInput("down");}, this);
+            this.Cursors.up.onDown.add(function () { wm.Level.HandleInput("up"); }, this);
+            this.Cursors.left.onDown.add(function () { wm.Level.HandleInput("left"); }, this);
+            this.Cursors.right.onDown.add(function () { wm.Level.HandleInput("right"); }, this);
 
             //set the marker that indicates the tile last clicked
             this.Marker = this.add.graphics(0, 0);
@@ -92,7 +92,9 @@ module WM.States {
 
             //added a handler for clicking the tile
             this.input.onDown.add(this.ClickTile, this);
+
         }
+
         //handles a click on a tile, only if there is no dialog running
         ClickTile(obj, pointer) {
             if (this.Dialog == null) {
@@ -105,19 +107,24 @@ module WM.States {
             }
         }
         //handles player interaction with tile in given direction. likely moves the player there too. updates the view of the entered cell
-        MovePlayer(dir:string) {
-            var target = this.Room.GetNeighbour(dir, this.Player.Cell.RoomX, this.Player.Cell.RoomY);
-            if (target != null) {
-                this.Room.MoveToTile(this.Player, target.RoomY, target.RoomX);
-                this.DrawCell(target.RoomX, target.RoomY, this.UnminedLayer);
-                this.DrawCell(target.RoomX, target.RoomY, this.FloorLayer);
-                this.DrawCell(target.RoomX, target.RoomY, this.EventsLayer);
-                this.DrawCell(target.RoomX, target.RoomY, this.WallsLayer);
+        HandleInput(dir: string) {
+            if (this.Dialog == null) {
+                var target = this.Room.GetNeighbour(dir, this.Player.Cell.RoomX, this.Player.Cell.RoomY);
+                if (target != null) {
+                    this.Room.MoveToTile(this.Player, target.RoomY, target.RoomX);
+                    this.DrawCell(target.RoomX, target.RoomY, this.UnminedLayer);
+                    this.DrawCell(target.RoomX, target.RoomY, this.FloorLayer);
+                    this.DrawCell(target.RoomX, target.RoomY, this.EventsLayer);
+                    this.DrawCell(target.RoomX, target.RoomY, this.WallsLayer);
+                }
+                this.PlayerStats.setText("Energy: " + this.Player.Energy);
             }
-            this.PlayerStats.setText("Energy: " + this.Player.Energy);
+            else {
+                this.Dialog.CurrentPanel.HandleInput(dir);                
+            }
         }
         //show the dialog of the given event
-        ShowDialog(event: string,cell:Level.Cell) {
+        ShowDialog(event: string, cell: Level.Cell) {
             this.Dialog = new Dialog.Event(this.game, G.events[event],cell);
             this.Dialog.ShowPanel();
         }

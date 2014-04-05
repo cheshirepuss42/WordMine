@@ -11,7 +11,6 @@ var WM;
         function Main() {
             _super.call(this, 1024, 672, Phaser.CANVAS, "wordmine");
             this.Player = new WM.Player.Player();
-            this.Player.name = "zzzzzzzzzzzzz";
             this.state.add("boot", WM.States.Boot);
             this.state.add("preload", WM.States.Preload);
             this.state.add("menu", WM.States.Menu);
@@ -24,7 +23,6 @@ var WM;
     WM.Main = Main;
 })(WM || (WM = {}));
 var wm;
-
 window.onload = function () {
     wm = new WM.Main();
 };

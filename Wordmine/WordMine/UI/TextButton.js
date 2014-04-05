@@ -19,16 +19,16 @@ var WM;
                 this.button = this.add(new Phaser.Button(this.game, 0, 0, "", callback, context));
                 this.button.loadTexture(WM.UI.FilledRect.getBMD(this.game, this.w, this.h, color), 0);
                 this.text = this.add(new Phaser.Text(this.game, 0, 0, text, WM.G.style));
-                this.text.anchor.setTo(0.5, 0.5);
+                this.text.anchor.set(0.5, 0.5);
                 this.text.x = this.button.width / 2;
                 this.text.y = this.button.height / 2;
                 this.Hide();
             }
             TextButton.prototype.Hide = function () {
-                this.button.alive = this.button.exists = this.button.visible = this.text.alive = this.text.exists = this.text.visible = false;
+                this.exists = false;
             };
             TextButton.prototype.Show = function () {
-                this.button.alive = this.button.exists = this.button.visible = this.text.alive = this.text.exists = this.text.visible = true;
+                this.exists = true;
             };
             return TextButton;
         })(Phaser.Group);

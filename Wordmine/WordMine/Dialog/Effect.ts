@@ -38,7 +38,7 @@ module WM.Dialog {
                 switch (call) {
                     case "add": f = function () { wm.Player.AddItem(elems[1]) }; break;
                     case "lose": f = function () { wm.Player.LoseItem(elems[1]) }; break;
-                    case "fight": f = function () { wm.Level.Fight(); }; break;
+                    //case "fight": f = function () { wm.Level.Fight(); }; break;
                 }
                 
                 var mod = elems[1];

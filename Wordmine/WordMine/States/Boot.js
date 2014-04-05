@@ -10,16 +10,11 @@ var WM;
         var Boot = (function (_super) {
             __extends(Boot, _super);
             function Boot() {
-                _super.call(this);
+                _super.apply(this, arguments);
             }
-            Boot.prototype.render = function () {
-            };
-
             Boot.prototype.create = function () {
+                this.game.stage.backgroundColor = '#444448';
                 this.game.state.start("preload", true, false);
-            };
-
-            Boot.prototype.update = function () {
             };
             return Boot;
         })(Phaser.State);

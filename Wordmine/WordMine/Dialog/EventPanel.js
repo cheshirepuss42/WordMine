@@ -14,14 +14,10 @@ var WM;
                 this.x = game.width / 4;
                 this.y = 100;
                 this.padding = 10;
-                this.background = this.add(new Phaser.Graphics(game, 0, 0));
-                this.background.beginFill(0xeeeeee);
-                this.background.drawRect(0, 0, game.width / 2, game.height / 1.5);
+                this.background = this.add(new WM.UI.FilledRect(game, game.width / 2, game.height / 1.5, "#eeeeee"));
                 this.options = new Array();
-
                 for (var j = 0; j < panel.options.length; j++) {
                     var option = panel.options[j];
-                    console.log(option);
                     if (WM.Dialog.Effect.Happens(option.conditions)) {
                         var effects = function () {
                             for (var i = 0; i < option.effects.length; i++) {
@@ -29,7 +25,6 @@ var WM;
                             }
                         };
                         var eopt = new WM.Dialog.EventOption(game, option.text, effects);
-                        console.log(eopt);
                         this.add(eopt);
                         eopt.y += 200 + ((this.options.length - 1) * eopt.h);
                         this.options.push(eopt);
@@ -44,15 +39,15 @@ var WM;
                 for (var i = 0; i < this.options.length; i++) {
                     this.options[i].Show();
                 }
-                this.text.alive = this.text.exists = this.text.visible = true;
-                this.background.alive = this.background.exists = this.background.visible = true;
+                this.text.exists = true;
+                this.background.exists = true;
             };
             EventPanel.prototype.Hide = function () {
                 for (var i = 0; i < this.options.length; i++) {
                     this.options[i].Hide();
                 }
-                this.text.alive = this.text.exists = this.text.visible = false;
-                this.background.alive = this.background.exists = this.background.visible = false;
+                this.text.exists = false;
+                this.background.exists = false;
             };
             return EventPanel;
         })(Phaser.Group);

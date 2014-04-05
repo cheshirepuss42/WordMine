@@ -53,6 +53,7 @@ module WM.Level {
                             target.Treasure = null;                            
                         }
                         //if there is a dialog, show it
+                        //console.log(target.Event);
                         if (target.Event != "") {
                             wm.Level.ShowDialog(target.Event,target);
                         }

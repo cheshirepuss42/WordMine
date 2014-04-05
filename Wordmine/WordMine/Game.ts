@@ -4,7 +4,7 @@ module WM {
         Player: Player.Player;
         Level: States.Level;
         constructor() {            
-            super(1024, 672, Phaser.CANVAS, "wordmine");
+            super(G.GameWidth, G.GameHeight, Phaser.CANVAS, "wordmine");
             this.Player = new Player.Player();
             this.state.add("boot", States.Boot);
             this.state.add("preload", States.Preload);

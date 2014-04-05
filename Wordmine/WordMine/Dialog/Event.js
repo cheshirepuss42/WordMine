@@ -2,8 +2,8 @@ var WM;
 (function (WM) {
     (function (Dialog) {
         var Event = (function () {
-            function Event(game, eventdata) {
-                this.Done = false;
+            function Event(game, eventdata, cell) {
+                this.Cell = cell;
                 this.Panels = new Array();
                 for (var i = 0; i < eventdata.panels.length; i++) {
                     var p = new WM.Dialog.EventPanel(game, eventdata.panels[i]);
@@ -16,10 +16,15 @@ var WM;
                     this.CurrentPanel = this.Panels[nr];
                     this.CurrentPanel.Show();
                 }
-                if (nr < 0) {
+                if (nr == -1) {
                     this.CurrentPanel.Hide();
-                    this.Done = true;
+                    this.Cell.Event = "";
                     wm.Level.Dialog = null;
+                    wm.Level.DrawRoom();
+                } else if (nr == -2) {
+                    this.CurrentPanel.Hide();
+                    wm.Level.Dialog = null;
+                    wm.Level.DrawRoom();
                 } else {
                     this.CurrentPanel.Hide();
                     this.CurrentPanel = this.Panels[nr];

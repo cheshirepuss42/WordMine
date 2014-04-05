@@ -60,9 +60,8 @@ var WM;
                 wm.Level = this;
 
                 //scaling the whole thing up, needs fixing
-                this.world.scale.x = 1.6;
-                this.world.scale.y = 1.6;
-
+                //this.world.scale.x = 1.6;
+                //this.world.scale.y = 1.6;
                 //build entire level
                 this.Lvl = new WM.Level.LvlData(WM.G.LevelWidth, WM.G.LevelHeight);
 
@@ -99,16 +98,16 @@ var WM;
 
                 //setup the buttons to allow player movement without keyboard
                 this.ButtonDown = this.game.add.existing(new WM.UI.TextButton(this.game, "down", 50, 50, function () {
-                    wm.Level.MovePlayer("down");
+                    wm.Level.HandleInput("down");
                 }));
                 this.ButtonUp = this.game.add.existing(new WM.UI.TextButton(this.game, "up", 50, 50, function () {
-                    wm.Level.MovePlayer("up");
+                    wm.Level.HandleInput("up");
                 }));
                 this.ButtonLeft = this.game.add.existing(new WM.UI.TextButton(this.game, "left", 50, 50, function () {
-                    wm.Level.MovePlayer("left");
+                    wm.Level.HandleInput("left");
                 }));
                 this.ButtonRight = this.game.add.existing(new WM.UI.TextButton(this.game, "right", 50, 50, function () {
-                    wm.Level.MovePlayer("right");
+                    wm.Level.HandleInput("right");
                 }));
                 this.ButtonDown.x = WM.G.MapWidth + 25;
                 this.ButtonDown.y = WM.G.MapHeight;
@@ -126,16 +125,16 @@ var WM;
                 //setup the keys allowing for player movement
                 this.Cursors = this.input.keyboard.createCursorKeys();
                 this.Cursors.down.onDown.add(function () {
-                    wm.Level.MovePlayer("down");
+                    wm.Level.HandleInput("down");
                 }, this);
                 this.Cursors.up.onDown.add(function () {
-                    wm.Level.MovePlayer("up");
+                    wm.Level.HandleInput("up");
                 }, this);
                 this.Cursors.left.onDown.add(function () {
-                    wm.Level.MovePlayer("left");
+                    wm.Level.HandleInput("left");
                 }, this);
                 this.Cursors.right.onDown.add(function () {
-                    wm.Level.MovePlayer("right");
+                    wm.Level.HandleInput("right");
                 }, this);
 
                 //set the marker that indicates the tile last clicked
@@ -160,16 +159,20 @@ var WM;
             };
 
             //handles player interaction with tile in given direction. likely moves the player there too. updates the view of the entered cell
-            Level.prototype.MovePlayer = function (dir) {
-                var target = this.Room.GetNeighbour(dir, this.Player.Cell.RoomX, this.Player.Cell.RoomY);
-                if (target != null) {
-                    this.Room.MoveToTile(this.Player, target.RoomY, target.RoomX);
-                    this.DrawCell(target.RoomX, target.RoomY, this.UnminedLayer);
-                    this.DrawCell(target.RoomX, target.RoomY, this.FloorLayer);
-                    this.DrawCell(target.RoomX, target.RoomY, this.EventsLayer);
-                    this.DrawCell(target.RoomX, target.RoomY, this.WallsLayer);
+            Level.prototype.HandleInput = function (dir) {
+                if (this.Dialog == null) {
+                    var target = this.Room.GetNeighbour(dir, this.Player.Cell.RoomX, this.Player.Cell.RoomY);
+                    if (target != null) {
+                        this.Room.MoveToTile(this.Player, target.RoomY, target.RoomX);
+                        this.DrawCell(target.RoomX, target.RoomY, this.UnminedLayer);
+                        this.DrawCell(target.RoomX, target.RoomY, this.FloorLayer);
+                        this.DrawCell(target.RoomX, target.RoomY, this.EventsLayer);
+                        this.DrawCell(target.RoomX, target.RoomY, this.WallsLayer);
+                    }
+                    this.PlayerStats.setText("Energy: " + this.Player.Energy);
+                } else {
+                    this.Dialog.CurrentPanel.HandleInput(dir);
                 }
-                this.PlayerStats.setText("Energy: " + this.Player.Energy);
             };
 
             //show the dialog of the given event
@@ -401,8 +404,11 @@ var WM;
                         index = (this.Passable) ? index : 91;
                         break;
                     case "events":
-                        index = (this.Event == "") ? index : 19;
-                        index = (this.Treasure == null) ? index : 9;
+                        if (this.Event != "") {
+                            index = 25;
+                        } else if (this.Treasure != null) {
+                            index = 9;
+                        }
                         break;
                     case "unmined":
                         index = (this.MinedOut) ? index : 37;
@@ -479,6 +485,7 @@ var WM;
                             }
 
                             //if there is a dialog, show it
+                            //console.log(target.Event);
                             if (target.Event != "") {
                                 wm.Level.ShowDialog(target.Event, target);
                             }
@@ -702,16 +709,21 @@ var WM;
             __extends(FilledRect, _super);
             function FilledRect(game, width, height, color) {
                 if (typeof color === "undefined") { color = "#fff"; }
-                _super.call(this, game, width, height);
+                _super.call(this, game, width, height, FilledRect.getBMD(game, width, height, color));
                 this.color = color;
-                this.loadTexture(FilledRect.getBMD(game, width, height, color), null);
+
+                //this.loadTexture(, null);
+                this.visible = true;
+                this.exists = true;
+                //this.
             }
             FilledRect.getBMD = function (game, width, height, color) {
                 if (typeof color === "undefined") { color = "#fff"; }
-                var bmd = new Phaser.BitmapData(game, "bla", width, height);
-                bmd.context.fillStyle = color;
-                bmd.context.rect(0, 0, width, height);
-                bmd.context.fill();
+                var bmd = new Phaser.BitmapData(game, "", width, height);
+                bmd.ctx.beginPath();
+                bmd.ctx.rect(0, 0, width, height);
+                bmd.ctx.fillStyle = color;
+                bmd.ctx.fill();
                 return bmd;
             };
             return FilledRect;
@@ -773,6 +785,7 @@ var WM;
                 if (typeof height === "undefined") { height = 50; }
                 if (typeof color === "undefined") { color = "#eee"; }
                 _super.call(this, game, null, "button");
+                this.callback = callback;
                 this.w = width;
                 this.h = height;
                 this.button = this.add(new Phaser.Button(this.game, 0, 0, "", callback, context));
@@ -784,10 +797,10 @@ var WM;
                 this.Hide();
             }
             TextButton.prototype.Hide = function () {
-                this.exists = false;
+                this.exists = this.visible = false;
             };
             TextButton.prototype.Show = function () {
-                this.exists = true;
+                this.exists = this.visible = true;
             };
             return TextButton;
         })(Phaser.Group);
@@ -866,10 +879,8 @@ var WM;
             __extends(EventPanel, _super);
             function EventPanel(game, panel) {
                 _super.call(this, game, null, "panel", false);
-                this.x = game.width / 4;
-                this.y = 100;
                 this.padding = 10;
-                this.background = this.add(new WM.UI.FilledRect(game, game.width / 2, game.height / 1.5, "#eeeeee"));
+                this.background = this.add(new Phaser.Image(game, 0, 0, WM.UI.FilledRect.getBMD(game, WM.G.MapWidth, WM.G.MapHeight, "#eee"), null));
                 this.options = new Array();
                 for (var j = 0; j < panel.options.length; j++) {
                     var option = panel.options[j];
@@ -879,7 +890,7 @@ var WM;
                                 WM.Dialog.Effect.Call(option.effects[i])();
                             }
                         };
-                        var eopt = new WM.Dialog.EventOption(game, option.text, effects);
+                        var eopt = new WM.Dialog.EventOption(game, option.text, WM.G.MapWidth, 70, effects);
                         this.add(eopt);
                         eopt.y += 200 + ((this.options.length - 1) * eopt.h);
                         this.options.push(eopt);
@@ -887,22 +898,36 @@ var WM;
                 }
                 this.image = panel.img;
                 this.text = this.add(new Phaser.Text(game, this.padding, this.padding, panel.text, WM.G.style));
-
+                this.SelectedOption = 0;
                 this.Hide();
             }
+            EventPanel.prototype.HandleInput = function (dir) {
+                this.options[this.SelectedOption].button.tint = 0xeeeeee;
+                if (dir == "down") {
+                    this.SelectedOption++;
+                    this.SelectedOption = (this.SelectedOption > this.options.length - 1) ? 0 : this.SelectedOption;
+                } else if (dir == "up") {
+                    this.SelectedOption--;
+                    this.SelectedOption = (this.SelectedOption < 0) ? this.options.length - 1 : this.SelectedOption;
+                } else
+                    this.options[this.SelectedOption].callback();
+                this.options[this.SelectedOption].button.tint = 0xaaaaee;
+            };
             EventPanel.prototype.Show = function () {
                 for (var i = 0; i < this.options.length; i++) {
                     this.options[i].Show();
                 }
-                this.text.exists = true;
-                this.background.exists = true;
+                this.text.exists = this.text.visible = true;
+                this.background.exists = this.background.visible = true;
+                this.visible = this.exists = true;
             };
             EventPanel.prototype.Hide = function () {
                 for (var i = 0; i < this.options.length; i++) {
                     this.options[i].Hide();
                 }
-                this.text.exists = false;
-                this.background.exists = false;
+                this.text.exists = this.text.visible = false;
+                this.background.exists = this.background.visible = false;
+                this.visible = this.exists = false;
             };
             return EventPanel;
         })(Phaser.Group);
@@ -916,8 +941,8 @@ var WM;
     (function (Dialog) {
         var EventOption = (function (_super) {
             __extends(EventOption, _super);
-            function EventOption(game, text, callback, context) {
-                _super.call(this, game, text, 400, 70, callback, context, "#ddf");
+            function EventOption(game, text, width, height, callback, context) {
+                _super.call(this, game, text, width, height, callback, context, "#ddf");
             }
             return EventOption;
         })(WM.UI.TextButton);
@@ -932,27 +957,31 @@ var WM;
             function Event(game, eventdata, cell) {
                 this.Cell = cell;
                 this.Panels = new Array();
+                this.CurrentPanel = null;
                 for (var i = 0; i < eventdata.panels.length; i++) {
-                    var p = new WM.Dialog.EventPanel(game, eventdata.panels[i]);
-                    this.Panels.push(p);
+                    this.Panels.push(game.add.existing(new WM.Dialog.EventPanel(game, eventdata.panels[i])));
                 }
             }
             Event.prototype.ShowPanel = function (nr) {
                 if (typeof nr === "undefined") { nr = 0; }
+                console.log("nr", nr, this);
                 if (this.CurrentPanel == null) {
+                    console.log("--first");
                     this.CurrentPanel = this.Panels[nr];
                     this.CurrentPanel.Show();
-                }
-                if (nr == -1) {
+                } else if (nr == -1) {
+                    console.log("--gone");
                     this.CurrentPanel.Hide();
                     this.Cell.Event = "";
                     wm.Level.Dialog = null;
                     wm.Level.DrawRoom();
                 } else if (nr == -2) {
+                    console.log("--stay");
                     this.CurrentPanel.Hide();
                     wm.Level.Dialog = null;
                     wm.Level.DrawRoom();
                 } else {
+                    console.log("--next");
                     this.CurrentPanel.Hide(); //close panel and show next
                     this.CurrentPanel = this.Panels[nr];
                     this.CurrentPanel.Show();
@@ -1023,11 +1052,6 @@ var WM;
                         case "lose":
                             f = function () {
                                 wm.Player.LoseItem(elems[1]);
-                            };
-                            break;
-                        case "fight":
-                            f = function () {
-                                wm.Level.Fight();
                             };
                             break;
                     }
@@ -1136,6 +1160,8 @@ var WM;
             configurable: true
         });
         G.CellSize = 32;
+        G.GameWidth = 1024;
+        G.GameHeight = 672;
         G.RoomWidth = 15;
         G.RoomHeight = 11;
         G.LevelWidth = 3;
@@ -1205,7 +1231,7 @@ var WM;
                 "grid": [
                     "XXXXXX",
                     "X...X.",
-                    "X.ttt.",
+                    "X.ttte",
                     "XXXXXX"]
             }
         ];
@@ -1259,7 +1285,7 @@ var WM;
     var Main = (function (_super) {
         __extends(Main, _super);
         function Main() {
-            _super.call(this, 1024, 672, Phaser.CANVAS, "wordmine");
+            _super.call(this, WM.G.GameWidth, WM.G.GameHeight, Phaser.CANVAS, "wordmine");
             this.Player = new WM.Player.Player();
             this.state.add("boot", WM.States.Boot);
             this.state.add("preload", WM.States.Preload);

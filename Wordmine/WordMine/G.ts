@@ -1,6 +1,8 @@
 module WM {
     export class G {  
         static CellSize: number = 32;
+        static GameWidth: number = 1024;
+        static GameHeight: number = 672;
         static RoomWidth: number = 15;
         static RoomHeight: number = 11;
         static LevelWidth: number = 3;
@@ -71,7 +73,7 @@ module WM {
                 "grid": [
                     "XXXXXX",
                     "X...X.",
-                    "X.ttt.",
+                    "X.ttte",
                     "XXXXXX"]
             }//,
             //{

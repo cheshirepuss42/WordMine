@@ -17,10 +17,10 @@ var WM;
             }
             FilledRect.getBMD = function (game, width, height, color) {
                 if (typeof color === "undefined") { color = "#fff"; }
-                var bmd = new Phaser.BitmapData(game, width, height);
-                bmd.beginFill(color);
-                bmd.rect(0, 0, width, height);
-                bmd.fill();
+                var bmd = new Phaser.BitmapData(game, "bla", width, height);
+                bmd.context.fillStyle = color;
+                bmd.context.rect(0, 0, width, height);
+                bmd.context.fill();
                 return bmd;
             };
             return FilledRect;

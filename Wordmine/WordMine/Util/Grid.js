@@ -26,6 +26,9 @@ var WM;
                 }
                 return str;
             };
+            Grid.prototype.Dump = function () {
+                console.log(this.AsString());
+            };
             Grid.prototype.GetNeighbour = function (dir, x, y) {
                 var nx = x, ny = y;
                 switch (dir) {

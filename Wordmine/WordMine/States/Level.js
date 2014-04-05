@@ -10,54 +10,39 @@ var WM;
         var Level = (function (_super) {
             __extends(Level, _super);
             function Level() {
-                _super.call(this);
+                _super.apply(this, arguments);
             }
-            Level.prototype.render = function () {
-            };
-
             Level.prototype.create = function () {
                 wm.Level = this;
 
-                this.Player = wm.Player;
+                this.world.scale.x = 1.6;
+                this.world.scale.y = 1.6;
+
                 this.Lvl = new WM.Level.LvlData(WM.G.LevelWidth, WM.G.LevelHeight);
+
                 this.Room = this.Lvl.Cells[1][1];
-                this.Map = this.add.tilemap("map", "tiles");
-                this.Map.addTilesetImage("TileA2", "tiles");
-                this.FloorLayer = this.Map.createLayer("floor");
-                this.EventsLayer = this.Map.createLayer("events");
-                this.WallsLayer = this.Map.createLayer("walls");
-                this.UnminedLayer = this.Map.createLayer("unmined");
+
+                this.Map = this.game.add.tilemap();
+                this.Map.addTilesetImage("tiles");
+
+                this.FloorLayer = this.Map.create("floor", WM.G.RoomWidth, WM.G.RoomHeight, WM.G.CellSize, WM.G.CellSize);
+
+                this.EventsLayer = this.Map.createBlankLayer("events", WM.G.RoomWidth, WM.G.RoomHeight, WM.G.CellSize, WM.G.CellSize);
+                this.WallsLayer = this.Map.createBlankLayer("walls", WM.G.RoomWidth, WM.G.RoomHeight, WM.G.CellSize, WM.G.CellSize);
+                this.UnminedLayer = this.Map.createBlankLayer("unmined", WM.G.RoomWidth, WM.G.RoomHeight, WM.G.CellSize, WM.G.CellSize);
+
                 this.UnminedLayer.alpha = 0.95;
-                this.Cursors = this.input.keyboard.createCursorKeys();
-                var mapwidth = this.Room.Width * WM.G.CellSize;
-                var mapheight = this.Room.Height * WM.G.CellSize;
-                this.PlayerStats = this.game.add.text(mapwidth, 0, "Energy: ", { fill: "#fff", font: "20px" });
 
-                var self = this;
-                this.Cursors.down.onDown.add(function () {
-                    self.MovePlayer("down");
-                }, this);
-                this.Cursors.up.onDown.add(function () {
-                    self.MovePlayer("up");
-                }, this);
-                this.Cursors.left.onDown.add(function () {
-                    self.MovePlayer("left");
-                }, this);
-                this.Cursors.right.onDown.add(function () {
-                    self.MovePlayer("right");
-                }, this);
-
+                this.Player = wm.Player;
                 this.Player.View = this.add.sprite(0, 0, "player");
-
                 this.Player.View.scale.setTo(0.9, 0.9);
-
                 this.Player.Cell = this.Room.Middle();
                 this.Player.Cell.MinedOut = true;
 
-                this.Marker = this.add.graphics(0, 0);
-                this.Marker.lineStyle(2, 0xff0000, 1);
-                this.Marker.drawRect(0, 0, WM.G.CellSize, WM.G.CellSize);
+                this.PlayerStats = this.game.add.text(WM.G.MapWidth, 0, "Energy: ", { fill: "#fff", font: "20px" });
+
                 this.DrawRoom();
+
                 this.ButtonDown = this.game.add.existing(new WM.UI.TextButton(this.game, "down", 50, 50, function () {
                     wm.Level.MovePlayer("down");
                 }));
@@ -70,29 +55,51 @@ var WM;
                 this.ButtonRight = this.game.add.existing(new WM.UI.TextButton(this.game, "right", 50, 50, function () {
                     wm.Level.MovePlayer("right");
                 }));
-                this.ButtonDown.x = mapwidth + 25;
-                this.ButtonDown.y = mapheight;
+                this.ButtonDown.x = WM.G.MapWidth + 25;
+                this.ButtonDown.y = WM.G.MapHeight;
                 this.ButtonDown.Show();
-                this.ButtonUp.x = mapwidth + 25;
-                this.ButtonUp.y = mapheight - 100;
+                this.ButtonUp.x = WM.G.MapWidth + 25;
+                this.ButtonUp.y = WM.G.MapHeight - 100;
                 this.ButtonUp.Show();
-                this.ButtonLeft.x = mapwidth;
-                this.ButtonLeft.y = mapheight - 50;
+                this.ButtonLeft.x = WM.G.MapWidth;
+                this.ButtonLeft.y = WM.G.MapHeight - 50;
                 this.ButtonLeft.Show();
-                this.ButtonRight.x = mapwidth + 50;
-                this.ButtonRight.y = mapheight - 50;
+                this.ButtonRight.x = WM.G.MapWidth + 50;
+                this.ButtonRight.y = WM.G.MapHeight - 50;
                 this.ButtonRight.Show();
+
+                this.Cursors = this.input.keyboard.createCursorKeys();
+                this.Cursors.down.onDown.add(function () {
+                    wm.Level.MovePlayer("down");
+                }, this);
+                this.Cursors.up.onDown.add(function () {
+                    wm.Level.MovePlayer("up");
+                }, this);
+                this.Cursors.left.onDown.add(function () {
+                    wm.Level.MovePlayer("left");
+                }, this);
+                this.Cursors.right.onDown.add(function () {
+                    wm.Level.MovePlayer("right");
+                }, this);
+
+                this.Marker = this.add.graphics(0, 0);
+                this.Marker.lineStyle(2, 0xff0000, 1);
+                this.Marker.drawRect(0, 0, WM.G.CellSize, WM.G.CellSize);
+
                 this.input.onDown.add(this.ClickTile, this);
             };
+
             Level.prototype.ClickTile = function (obj, pointer) {
                 if (this.Dialog == null) {
                     var px = Math.floor((pointer.layerX / WM.G.CellSize) / this.world.scale.x);
                     var py = Math.floor((pointer.layerY / WM.G.CellSize) / this.world.scale.y);
-                    this.Marker.x = px * WM.G.CellSize;
-                    this.Marker.y = py * WM.G.CellSize;
-                    console.log(this.Room.Cells[py][px]);
+                    if (this.Room.Inside(py, px)) {
+                        console.log(this.Room.Cells[py][px], px, py);
+                        this.Marker.position.set(px * WM.G.CellSize, py * WM.G.CellSize);
+                    }
                 }
             };
+
             Level.prototype.MovePlayer = function (dir) {
                 var target = this.Room.GetNeighbour(dir, this.Player.Cell.RoomX, this.Player.Cell.RoomY);
                 if (target != null) {
@@ -102,10 +109,11 @@ var WM;
                     this.DrawCell(target.RoomX, target.RoomY, this.EventsLayer);
                     this.DrawCell(target.RoomX, target.RoomY, this.WallsLayer);
                 }
-                this.PlayerStats.content = "Energy: " + this.Player.Energy;
+                this.PlayerStats.setText("Energy: " + this.Player.Energy);
             };
-            Level.prototype.ShowEvent = function (event) {
-                this.Dialog = new WM.Dialog.Event(this.game, WM.G.events[event]);
+
+            Level.prototype.ShowDialog = function (event, cell) {
+                this.Dialog = new WM.Dialog.Event(this.game, WM.G.events[event], cell);
                 this.Dialog.ShowPanel();
             };
 
@@ -115,14 +123,14 @@ var WM;
                 this.Player.Cell.MinedOut = true;
                 this.DrawRoom();
             };
-            Level.prototype.Fight = function () {
-            };
+
             Level.prototype.DrawRoom = function () {
                 this.DrawLayer(this.FloorLayer);
                 this.DrawLayer(this.WallsLayer);
                 this.DrawLayer(this.EventsLayer);
                 this.DrawLayer(this.UnminedLayer);
             };
+
             Level.prototype.DrawLayer = function (layer) {
                 for (var i = 0; i < this.Room.Height; i++) {
                     for (var j = 0; j < this.Room.Width; j++) {
@@ -130,11 +138,13 @@ var WM;
                     }
                 }
             };
+
             Level.prototype.DrawCell = function (x, y, layer) {
-                var index = this.Room.Cells[x][y].GetTileIndex(layer.layer["name"]);
-                this.Map.putTile(index, y, x, layer);
+                this.Map.putTile(this.Room.Cells[x][y].GetTileIndex(layer.layer["name"]), y, x, layer);
             };
             Level.prototype.update = function () {
+            };
+            Level.prototype.render = function () {
             };
             return Level;
         })(Phaser.State);

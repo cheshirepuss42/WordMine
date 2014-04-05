@@ -3,12 +3,28 @@ var WM;
     var G = (function () {
         function G() {
         }
+        Object.defineProperty(G, "MapWidth", {
+            get: function () {
+                return this.CellSize * this.RoomWidth;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(G, "MapHeight", {
+            get: function () {
+                return this.CellSize * this.RoomHeight;
+            },
+            enumerable: true,
+            configurable: true
+        });
         G.CellSize = 32;
         G.RoomWidth = 15;
         G.RoomHeight = 11;
         G.LevelWidth = 3;
         G.LevelHeight = 3;
+
         G.style = { font: "16px Arial" };
+
         G.RoomSections = [
             {
                 "type": "fourth",

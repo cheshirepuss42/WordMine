@@ -11,13 +11,11 @@ var WM;
                     if (elems[0] == "has") {
                         result = wm.Player.Has(elems[1]);
                     } else {
-                        console.log("happens?", elems);
                         elems[0] = elems[0].substr(1, elems[0].length - 1);
                         var call = elems[0].split('.');
                         var mod = elems[1];
                         var am = elems[2];
                         var target = wm[call[0]][call[1]];
-                        console.log(target, call[0], call[1]);
                         switch (mod) {
                             case "true":
                                 result = target == true;
@@ -59,11 +57,6 @@ var WM;
                         case "lose":
                             f = function () {
                                 wm.Player.LoseItem(elems[1]);
-                            };
-                            break;
-                        case "fight":
-                            f = function () {
-                                wm.Level.Fight();
                             };
                             break;
                     }

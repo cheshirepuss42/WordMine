@@ -7,7 +7,6 @@ var WM;
                 this.Resources *= level;
             }
             Treasure.prototype.Handle = function (player) {
-                console.log(player.Energy);
                 player.Energy += this.Resources;
             };
             return Treasure;

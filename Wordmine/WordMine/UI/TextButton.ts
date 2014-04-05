@@ -4,8 +4,10 @@ module WM.UI {
         h: number;
         button: Phaser.Button;
         text: Phaser.Text;
+        callback: Function;
         constructor(game: Phaser.Game, text: string, width: number= 100, height: number= 50, callback?: Function,context?:Object,color:string="#eee") {
             super(game, null, "button");
+            this.callback = callback;
             this.w = width;
             this.h = height;        
             this.button = this.add(new Phaser.Button(this.game, 0, 0, "", callback,context));
@@ -15,13 +17,12 @@ module WM.UI {
             this.text.x = this.button.width / 2;
             this.text.y = this.button.height / 2;
             this.Hide();
-            
         }
         Hide() {
-            this.exists = false;
+            this.exists = this.visible= false;
         }
         Show() {
-            this.exists = true;
+            this.exists = this.visible = true;
         }
     }
 }

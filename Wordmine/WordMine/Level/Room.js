@@ -11,14 +11,17 @@ var WM;
             __extends(Room, _super);
             function Room(width, height, x, y, roomdata) {
                 _super.call(this, width, height);
+
                 this.PosX = x;
                 this.PosY = y;
+
                 this.Exits = new Array();
 
                 for (var i = 0; i < this.Height; i++) {
                     this.Cells[i] = new Array(this.Width);
                     for (var j = 0; j < this.Width; j++) {
                         this.Cells[i][j] = new WM.Level.Cell(i, j, ".");
+
                         this.Cells[i][j].Passable = (i == this.Height - 1 || i == 0 || j == this.Width - 1 || j == 0) ? false : true;
                     }
                 }
@@ -33,21 +36,25 @@ var WM;
                 var py = player.Cell.RoomY;
                 return this.Cells[x][y].MinedOut || (px + 1 == x && py == y) || (px - 1 == x && py == y) || (px == x && py + 1 == y) || (px == x && py - 1 == y);
             };
+
             Room.prototype.MoveToTile = function (player, x, y) {
                 if (this.Inside(y, x)) {
                     var target = this.Cells[y][x];
+
                     if (target.MinedOut) {
                         if (target.HasEvent()) {
                             if (target.Exit != null)
                                 wm.Level.HandleExit(target.Exit);
+
                             if (target.Treasure != null) {
                                 target.Treasure.Handle(player);
                                 player.Cell = target;
                                 new WM.UI.TextSpark("+" + target.Treasure.Resources + " energy", player.View.x, player.View.y);
                                 target.Treasure = null;
                             }
+
                             if (target.Event != "") {
-                                wm.Level.ShowEvent(target.Event);
+                                wm.Level.ShowDialog(target.Event, target);
                             }
                         } else {
                             if (target.Passable)
@@ -60,9 +67,6 @@ var WM;
                     }
                 }
             };
-            Room.prototype.Dump = function () {
-                console.log(this.AsString());
-            };
 
             Room.prototype.AddExit = function (exit) {
                 this.Exits.push(exit);
@@ -70,6 +74,7 @@ var WM;
                 cell.Exit = exit;
                 cell.Passable = true;
             };
+
             Room.prototype.GetExitCell = function (exittype) {
                 var hw = Math.floor(this.Width / 2);
                 var hh = Math.floor(this.Height / 2);
@@ -89,6 +94,7 @@ var WM;
             return Room;
         })(WM.Util.Grid);
         Level.Room = Room;
+
         var RoomExit = (function () {
             function RoomExit(target, type) {
                 this.TargetRoom = target;
@@ -118,14 +124,17 @@ var WM;
             return RoomExit;
         })();
         Level.RoomExit = RoomExit;
+
         var RoomSection = (function () {
             function RoomSection(type, grid) {
                 this.Type = type;
+
                 this.Grid = grid.slice();
             }
             RoomSection.prototype.Dump = function () {
                 console.log(this.Grid.join("\n"));
             };
+
             RoomSection.prototype.Flip = function (type) {
                 if (type == "horizontal") {
                     for (var i = 0; i < this.Grid.length; i++) {
@@ -141,6 +150,7 @@ var WM;
                     }
                 }
             };
+
             RoomSection.prototype.ApplyToRoom = function (room, quadrant) {
                 var posX = 1;
                 var posY = 1;
@@ -165,18 +175,21 @@ var WM;
                             break;
                     }
                 }
+
                 if (this.Type == "horizontal") {
                     if (quadrant == 2 || quadrant == 4) {
                         this.Flip("horizontal");
                         posY = newY;
                     }
                 }
+
                 if (this.Type == "vertical") {
                     if (quadrant == 3 || quadrant == 4) {
                         this.Flip("vertical");
                         posX = newX;
                     }
                 }
+
                 for (var i = posX; i < posX + this.Grid.length; i++) {
                     for (var j = posY; j < posY + this.Grid[0].length; j++) {
                         if (room.Inside(i, j)) {

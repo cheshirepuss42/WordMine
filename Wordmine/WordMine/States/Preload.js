@@ -10,30 +10,19 @@ var WM;
         var Preload = (function (_super) {
             __extends(Preload, _super);
             function Preload() {
-                _super.call(this);
+                _super.apply(this, arguments);
             }
             Preload.prototype.preload = function () {
                 this.game.load.image('player', '/Wordmine/Assets/player.png');
-
-                this.game.load.tilemap('map', '/Wordmine/Assets/basemap.map', null, Phaser.Tilemap.TILED_JSON);
-
-                this.game.load.spritesheet("tiles", "/Wordmine/Assets/t000.png", WM.G.CellSize, WM.G.CellSize);
+                this.game.load.image('tiles', "/Wordmine/Assets/t000.png");
             };
-
             Preload.prototype.create = function () {
-                this.game.stage.backgroundColor = '#444448';
                 this.preloadBar = new WM.UI.ProgressBar(this.game, 100, 50);
-                this.counter = 0.1;
+                var tween = this.add.tween(this.preloadBar).to({ FilledAmount: 1 }, 1000, Phaser.Easing.Linear.None, true);
+                tween.onComplete.add(this.startMainMenu, this);
             };
-            Preload.prototype.render = function () {
-            };
-            Preload.prototype.update = function () {
-                this.counter -= this.game.time.elapsed / 1000;
-                this.preloadBar.SetAmount(this.counter);
-                if (this.counter < 0) {
-                    this.preloadBar.destroy(true);
-                    this.game.state.start("menu", true, false);
-                }
+            Preload.prototype.startMainMenu = function () {
+                this.game.state.start("menu", true, false);
             };
             return Preload;
         })(Phaser.State);
