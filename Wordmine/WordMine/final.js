@@ -81,7 +81,7 @@ var WM;
                 this.UnminedLayer = this.Map.createBlankLayer("unmined", WM.G.RoomWidth, WM.G.RoomHeight, WM.G.CellSize, WM.G.CellSize);
 
                 //show a little of what is under the unminedlayer for debugging
-                this.UnminedLayer.alpha = 0.95;
+                this.UnminedLayer.alpha = 0.25;
 
                 //make the player, his view and his position
                 this.Player = wm.Player;
@@ -450,10 +450,11 @@ var WM;
                     }
                 }
 
-                for (var k = 0; k < 4; k++) {
-                    var nr = Math.floor(Math.random() * WM.G.RoomSections.length);
-                    new RoomSection(WM.G.RoomSections[nr].type, WM.G.RoomSections[nr].grid).ApplyToRoom(this, k + 1);
-                }
+                //applying random roomsections as defined in g.roomsections, needs 1x2 and 2x1 sections
+                //keep track of which sections are filled
+                console.log("new room");
+                var handler = new WM.Level.RoomSectionsHandler(this);
+                handler.FillRoom();
             }
             //can the player reach the minedout cell
             Room.prototype.CellReachable = function (player, x, y) {
@@ -561,92 +562,6 @@ var WM;
             return RoomExit;
         })();
         Level.RoomExit = RoomExit;
-
-        //class that describes a roomsection used for procedural generation,
-        //now still a fourth, which can be flipped to fit in any quadrant
-        //based on stringarrays in G.roomsections
-        var RoomSection = (function () {
-            function RoomSection(type, grid) {
-                this.Type = type;
-
-                //copy the grid from the data from G, so we can manipulate it
-                this.Grid = grid.slice();
-            }
-            RoomSection.prototype.Dump = function () {
-                console.log(this.Grid.join("\n"));
-            };
-
-            //flips the section so it can be mirrored in the different quadrant
-            RoomSection.prototype.Flip = function (type) {
-                if (type == "horizontal") {
-                    for (var i = 0; i < this.Grid.length; i++) {
-                        this.Grid[i] = this.Grid[i].split("").reverse().join("");
-                    }
-                }
-                if (type == "vertical") {
-                    for (var i = 0; i < (this.Grid.length / 2); i++) {
-                        var temp = this.Grid[i];
-                        var target = i + ((this.Grid.length - 1) - (i * 2));
-                        this.Grid[i] = this.Grid[target];
-                        this.Grid[target] = temp;
-                    }
-                }
-            };
-
-            //paste this section intto the room in the given quadrant
-            RoomSection.prototype.ApplyToRoom = function (room, quadrant) {
-                var posX = 1;
-                var posY = 1;
-                var newX = Math.floor((WM.G.RoomHeight / 2) + 1);
-                var newY = Math.floor((WM.G.RoomWidth / 2) + 1);
-
-                //if the grid is a fourth of the total, flip it so it will be mirrored to the right quadrant
-                if (this.Type == "fourth") {
-                    switch (quadrant) {
-                        case 2:
-                            this.Flip("horizontal");
-                            posY = newY;
-                            break;
-                        case 3:
-                            this.Flip("vertical");
-                            posX = newX;
-                            break;
-                        case 4:
-                            this.Flip("horizontal");
-                            this.Flip("vertical");
-                            posX = newX;
-                            posY = newY;
-                            break;
-                    }
-                }
-
-                //this needs fixing, as no it overwrites other sections
-                if (this.Type == "horizontal") {
-                    if (quadrant == 2 || quadrant == 4) {
-                        this.Flip("horizontal");
-                        posY = newY;
-                    }
-                }
-
-                //this needs fixing, as no it overwrites other sections
-                if (this.Type == "vertical") {
-                    if (quadrant == 3 || quadrant == 4) {
-                        this.Flip("vertical");
-                        posX = newX;
-                    }
-                }
-
-                for (var i = posX; i < posX + this.Grid.length; i++) {
-                    for (var j = posY; j < posY + this.Grid[0].length; j++) {
-                        if (room.Inside(i, j)) {
-                            room.Cells[i][j] = new WM.Level.Cell(i, j, this.Grid[i - posX][j - posY]);
-                        }
-                    }
-                }
-            };
-            return RoomSection;
-        })();
-        Level.RoomSection = RoomSection;
     })(WM.Level || (WM.Level = {}));
     var Level = WM.Level;
 })(WM || (WM = {}));
@@ -1233,6 +1148,27 @@ var WM;
                     "X...X.",
                     "X.ttte",
                     "XXXXXX"]
+            },
+            {
+                "type": "vertical",
+                "grid": [
+                    "RRRR.X",
+                    "XX..X.",
+                    "RRRR.X",
+                    "XX..X.",
+                    "......",
+                    "RRRR.X",
+                    "XX..X.",
+                    "...X..",
+                    "XX.XXX"]
+            },
+            {
+                "type": "horizontal",
+                "grid": [
+                    ".............",
+                    ".XXXXXXXX.X..",
+                    "RXD....R...R.",
+                    "XX.XXXXXXXXXX"]
             }
         ];
         G.events = {
@@ -1302,6 +1238,179 @@ var wm;
 window.onload = function () {
     wm = new WM.Main();
 };
+var WM;
+(function (WM) {
+    (function (Level) {
+        var RoomSectionsHandler = (function () {
+            function RoomSectionsHandler(room) {
+                this.Locations = [[[0, 1], [0, 2]], [[0, 1], [1, 3]], [[2, 3], [0, 2]], [[2, 3], [1, 3]]];
+                this.SectionsFilled = [false, false, false, false];
+                this.Room = room;
+                this.Sections = new Array();
+                for (var i = 0; i < WM.G.RoomSections.length; i++) {
+                    this.Sections.push(new RoomSection(WM.G.RoomSections[i].type, WM.G.RoomSections[i].grid));
+                }
+            }
+            //FillRoom() {
+            //    for (var k = 0; k < 4; k++) {
+            //        var nr = Math.floor(Math.random() * G.RoomSections.length);
+            //        var section = new RoomSection(G.RoomSections[nr].type, G.RoomSections[nr].grid);
+            //        if (this.CanBePlaced(section,k)) {
+            //            this.ApplyToRoom(section, k);
+            //            console.log(this.SectionsFilled);
+            //        }
+            //        else {
+            //            if (!this.RoomFilled()) {
+            //                k--;
+            //            }
+            //        }
+            //    }
+            //}
+            //RoomFilled(): boolean {
+            //    return this.SectionsFilled[0] == this.SectionsFilled[1] == this.SectionsFilled[2] == this.SectionsFilled[3] == true;
+            //}
+            //CanBePlaced(section: RoomSection, quadrant: number): boolean {
+            //    if (section.Type == "fourth") {
+            //        return this.SectionsFilled[quadrant];
+            //    }
+            //    else {
+            //        var type = section.Type == "horizontal" ? 0 : 1;
+            //        var locations = this.Locations[quadrant][type];
+            //        return !this.SectionsFilled[locations[0]] && !this.SectionsFilled[locations[1]];
+            //    }
+            //}
+            RoomSectionsHandler.prototype.RoomFilled = function () {
+                return this.SectionsFilled[0] && this.SectionsFilled[1] && this.SectionsFilled[2] && this.SectionsFilled[3];
+            };
+            RoomSectionsHandler.prototype.FillRoom = function () {
+                while (!this.RoomFilled()) {
+                    var sectionindex = Math.floor(Math.random() * this.Sections.length);
+                    var quadrant = Math.floor(Math.random() * 4);
+
+                    //console.log(sectionindex, quadrant, this.SectionsFilled);
+                    if (this.SectionFitsInRoom(sectionindex, quadrant)) {
+                        this.ApplyToRoom(sectionindex, quadrant);
+                    }
+                }
+            };
+            RoomSectionsHandler.prototype.SectionFitsInRoom = function (sectionindex, quadr) {
+                var section = this.Sections[sectionindex];
+                if (section.Type == "fourth") {
+                    return !this.SectionsFilled[quadr];
+                }
+                if (section.Type == "vertical") {
+                    if (quadr == 0 || quadr == 2) {
+                        return !this.SectionsFilled[0] && !this.SectionsFilled[2];
+                    } else {
+                        return !this.SectionsFilled[1] && !this.SectionsFilled[3];
+                    }
+                }
+                if (section.Type == "horizontal") {
+                    if (quadr == 0 || quadr == 1) {
+                        return !this.SectionsFilled[0] && !this.SectionsFilled[1];
+                    } else {
+                        return !this.SectionsFilled[2] && !this.SectionsFilled[3];
+                    }
+                }
+                return false;
+            };
+
+            //paste this section intto the room in the given quadrant
+            RoomSectionsHandler.prototype.ApplyToRoom = function (sectionindex, quadrant) {
+                var section = new RoomSection(this.Sections[sectionindex].Type, this.Sections[sectionindex].Grid.slice());
+                console.log("placing:", section, "in", quadrant);
+                var posX = 1;
+                var posY = 1;
+                var newX = Math.floor((WM.G.RoomHeight / 2) + 1);
+                var newY = Math.floor((WM.G.RoomWidth / 2) + 1);
+                this.SectionsFilled[quadrant] = true;
+
+                //if the grid is a fourth of the total, flip it so it will be mirrored to the right quadrant
+                if (section.Type == "fourth") {
+                    switch (quadrant) {
+                        case 1:
+                            section.Flip("horizontal");
+                            posY = newY;
+                            break;
+                        case 2:
+                            section.Flip("vertical");
+                            posX = newX;
+                            break;
+                        case 3:
+                            section.Flip("horizontal");
+                            section.Flip("vertical");
+                            posX = newX;
+                            posY = newY;
+                            break;
+                    }
+                }
+                if (section.Type == "horizontal") {
+                    if (quadrant == 2 || quadrant == 3) {
+                        this.SectionsFilled[2] = this.SectionsFilled[3] = true;
+                        section.Flip("vertical");
+                        posX = newX;
+                    } else {
+                        this.SectionsFilled[0] = this.SectionsFilled[1] = true;
+                    }
+                }
+                if (section.Type == "vertical") {
+                    if (quadrant == 1 || quadrant == 3) {
+                        this.SectionsFilled[1] = this.SectionsFilled[3] = true;
+                        section.Flip("horizontal");
+                        posY = newY;
+                    } else {
+                        this.SectionsFilled[0] = this.SectionsFilled[2] = true;
+                    }
+                }
+
+                for (var i = posX; i < posX + section.Grid.length; i++) {
+                    for (var j = posY; j < posY + section.Grid[0].length; j++) {
+                        if (this.Room.Inside(i, j)) {
+                            this.Room.Cells[i][j] = new WM.Level.Cell(i, j, section.Grid[i - posX][j - posY]);
+                        }
+                    }
+                }
+            };
+            return RoomSectionsHandler;
+        })();
+        Level.RoomSectionsHandler = RoomSectionsHandler;
+
+        //class that describes a roomsection used for procedural generation,
+        //now still a fourth, which can be flipped to fit in any quadrant
+        //based on stringarrays in G.roomsections
+        var RoomSection = (function () {
+            function RoomSection(type, grid) {
+                this.Type = type;
+
+                //copy the grid from the data from G, so we can manipulate it
+                this.Grid = grid.slice();
+            }
+            RoomSection.prototype.Dump = function () {
+                console.log(this.Grid.join("\n"));
+            };
+
+            //flips the section so it can be mirrored in the different quadrant
+            RoomSection.prototype.Flip = function (type) {
+                if (type == "horizontal") {
+                    for (var i = 0; i < this.Grid.length; i++) {
+                        this.Grid[i] = this.Grid[i].split("").reverse().join("");
+                    }
+                }
+                if (type == "vertical") {
+                    for (var i = 0; i < (this.Grid.length / 2); i++) {
+                        var temp = this.Grid[i];
+                        var target = i + ((this.Grid.length - 1) - (i * 2));
+                        this.Grid[i] = this.Grid[target];
+                        this.Grid[target] = temp;
+                    }
+                }
+            };
+            return RoomSection;
+        })();
+        Level.RoomSection = RoomSection;
+    })(WM.Level || (WM.Level = {}));
+    var Level = WM.Level;
+})(WM || (WM = {}));
 var WM;
 (function (WM) {
     (function (Treasure) {

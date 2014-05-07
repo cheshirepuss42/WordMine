@@ -1,9 +1,10 @@
-﻿-show info for player
--Events:
-	-is by itself invisible
-	-when player moves on it, it executes before anything else
-	-when the dialog ends either the player is rebuffed, leaving the event intact and the player on the old tile
-	-or the event disappears and the player moves on the target, that should be part of the event
+﻿-make roomsections have half-sections
+-make everything scalable for different screens
+-add creeps
+	-add to the roomsections
+	-location?
+	-bosses?
+-show info for player
 
 -make items
 -make random shit
@@ -27,3 +28,12 @@
 	-make a new screen
 	-show letters to be picked
 	-show enemy
+
+
+	------------------------
+	1v1 spel:
+	thing vs humans
+	iedereen begint als mens behalve 1
+	thing kan mens besmetten als ze alleen zijn
+	mens kan robots bouwen die aanvallen als ze thing zien
+	doel mensen: thing dood 

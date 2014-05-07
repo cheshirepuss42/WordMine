@@ -5,6 +5,7 @@ module WM.Level {
         PosX: number;
         PosY: number;
         Exits: Array<RoomExit>;
+
         constructor(width:number, height:number,x:number,y:number,roomdata?:any) {
             super(width, height);
             //set position in lvlgrid
@@ -22,11 +23,15 @@ module WM.Level {
                 }
             }
             //applying random roomsections as defined in g.roomsections, needs 1x2 and 2x1 sections
-            for (var k = 0; k < 4; k++) {
-                var nr = Math.floor(Math.random() * G.RoomSections.length);
-                new RoomSection(G.RoomSections[nr].type, G.RoomSections[nr].grid).ApplyToRoom(this, k + 1);
-            }
+            //keep track of which sections are filled
+            console.log("new room");
+            var handler = new RoomSectionsHandler(this);
+            handler.FillRoom();
+            
+
         }
+
+
         //can the player reach the minedout cell
         CellReachable(player: Player.Player, x: number, y: number):boolean {
             var px = player.Cell.RoomX;
@@ -113,72 +118,6 @@ module WM.Level {
             return this.TargetRoom.GetExitCell(entrance);
         }
     }
-    //class that describes a roomsection used for procedural generation,
-    //now still a fourth, which can be flipped to fit in any quadrant
-    //based on stringarrays in G.roomsections
-    export class RoomSection {
-        Type: string;        
-        Grid: Array<string>;
-        constructor(type:string,grid:any) {
-            this.Type = type;
-            //copy the grid from the data from G, so we can manipulate it
-            this.Grid = <Array<string>>grid.slice();
-        }
-        Dump() {
-            console.log(this.Grid.join("\n"));
-        }
-        //flips the section so it can be mirrored in the different quadrant
-        Flip(type:string) {
-            if (type == "horizontal") {
-                for (var i = 0; i < this.Grid.length; i++) {
-                    this.Grid[i] = this.Grid[i].split("").reverse().join("");
-                }
-            }
-            if (type == "vertical") {
-                for (var i = 0; i < (this.Grid.length / 2); i++) {
-                    var temp = this.Grid[i];
-                    var target = i + ((this.Grid.length - 1) - (i * 2));
-                    this.Grid[i] = this.Grid[target];
-                    this.Grid[target] = temp;
-                }
-            }
-        }
-        //paste this section intto the room in the given quadrant 
-        ApplyToRoom(room: Room, quadrant: number) {
-            var posX = 1;
-            var posY = 1;
-            var newX = Math.floor((G.RoomHeight / 2) + 1);
-            var newY = Math.floor((G.RoomWidth / 2) + 1);
-            //if the grid is a fourth of the total, flip it so it will be mirrored to the right quadrant
-            if (this.Type == "fourth") {
-                switch (quadrant) {
-                    case 2: this.Flip("horizontal"); posY = newY; break;
-                    case 3: this.Flip("vertical"); posX = newX; break;
-                    case 4: this.Flip("horizontal"); this.Flip("vertical"); posX = newX; posY = newY; break;
-                }
-            }
-            //this needs fixing, as no it overwrites other sections
-            if (this.Type == "horizontal") {
-                if (quadrant == 2 || quadrant == 4) {
-                    this.Flip("horizontal");
-                    posY = newY;
-                }
-            }
-            //this needs fixing, as no it overwrites other sections
-            if (this.Type == "vertical") {
-                if (quadrant == 3 || quadrant == 4) {
-                    this.Flip("vertical");
-                    posX = newX;
-                }
-            }
-            //actually apply the sections to the room
-            for (var i = posX; i < posX + this.Grid.length; i++) {
-                for (var j = posY; j < posY + this.Grid[0].length; j++) {                    
-                    if (room.Inside(i,j)) {
-                        room.Cells[i][j] = new Cell(i, j, this.Grid[i - posX][j - posY]);
-                    }
-                }
-            }
-        }
-    }
+   
+    
 }  

@@ -45,7 +45,7 @@ module WM.States {
             this.UnminedLayer = this.Map.createBlankLayer("unmined", G.RoomWidth, G.RoomHeight, G.CellSize, G.CellSize);
 
             //show a little of what is under the unminedlayer for debugging
-            this.UnminedLayer.alpha = 0.95;
+            this.UnminedLayer.alpha = 0.25;
 
             //make the player, his view and his position
             this.Player = wm.Player;

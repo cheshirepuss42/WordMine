@@ -75,26 +75,28 @@ module WM {
                     "X...X.",
                     "X.ttte",
                     "XXXXXX"]
-            }//,
-            //{
-            //    "type": "horizontal",
-            //    "grid": [   "RRRR.X",
-            //                "XX..X.",
-            //                "RRRR.X",
-            //                "XX..X.",
-            //                "......",
-            //                "RRRR.X",
-            //                "XX..X.",
-            //                ".X.X..",
-            //                "XX.XXX"]
-            //},
-            //{
-            //    "type": "vertical",
-            //    "grid": [   ".............",
-            //                ".XXXXXXXX.X..",
-            //                "RXD....R...R.",
-            //                "XX.XXXXXXXXXX"]
-            //}
+            }
+            ,
+            {
+                "type": "vertical",
+                "grid": [   "RRRR.X",
+                            "XX..X.",
+                            "RRRR.X",
+                            "XX..X.",
+                            "......",
+                            "RRRR.X",
+                            "XX..X.",
+                            "...X..",
+                            "XX.XXX"]
+        }
+            ,
+            {
+                "type": "horizontal",
+                "grid": [   ".............",
+                            ".XXXXXXXX.X..",
+                            "RXD....R...R.",
+                            "XX.XXXXXXXXXX"]
+            }
         ]
         static events: any = {
             "first": {

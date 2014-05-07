@@ -46,6 +46,7 @@
     <TypeScriptCompile Include="WordMine\Level\Cell.ts" />
     <TypeScriptCompile Include="WordMine\Level\LvlData.ts" />
     <TypeScriptCompile Include="WordMine\Level\Room.ts" />
+    <TypeScriptCompile Include="WordMine\Level\RoomSection.ts" />
     <TypeScriptCompile Include="WordMine\phaser.d.ts" />
     <TypeScriptCompile Include="WordMine\Player\Player.ts" />
     <TypeScriptCompile Include="WordMine\States\Boot.ts" />
