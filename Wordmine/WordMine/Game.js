@@ -9,7 +9,7 @@ var WM;
     var Main = (function (_super) {
         __extends(Main, _super);
         function Main() {
-            _super.call(this, 1024, 672, Phaser.CANVAS, "wordmine");
+            _super.call(this, WM.G.GameWidth, WM.G.GameHeight, Phaser.CANVAS, "wordmine");
             this.Player = new WM.Player.Player();
             this.state.add("boot", WM.States.Boot);
             this.state.add("preload", WM.States.Preload);

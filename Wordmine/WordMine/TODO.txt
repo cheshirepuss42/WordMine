@@ -1,4 +1,18 @@
-﻿-make roomsections have half-sections
+﻿Fixes:
+
+
+
+Features:
+
+
+
+
+
+
+
+
+
+-fix
 -make everything scalable for different screens
 -add creeps
 	-add to the roomsections

@@ -9,8 +9,8 @@ var WM;
     (function (Dialog) {
         var EventOption = (function (_super) {
             __extends(EventOption, _super);
-            function EventOption(game, text, callback, context) {
-                _super.call(this, game, text, 400, 70, callback, context, "#ddf");
+            function EventOption(game, text, width, height, callback, context) {
+                _super.call(this, game, text, width, height, callback, context, "#ddf");
             }
             return EventOption;
         })(WM.UI.TextButton);

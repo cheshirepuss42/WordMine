@@ -15,9 +15,6 @@ var WM;
             Level.prototype.create = function () {
                 wm.Level = this;
 
-                this.world.scale.x = 1.6;
-                this.world.scale.y = 1.6;
-
                 this.Lvl = new WM.Level.LvlData(WM.G.LevelWidth, WM.G.LevelHeight);
 
                 this.Room = this.Lvl.Cells[1][1];
@@ -31,7 +28,7 @@ var WM;
                 this.WallsLayer = this.Map.createBlankLayer("walls", WM.G.RoomWidth, WM.G.RoomHeight, WM.G.CellSize, WM.G.CellSize);
                 this.UnminedLayer = this.Map.createBlankLayer("unmined", WM.G.RoomWidth, WM.G.RoomHeight, WM.G.CellSize, WM.G.CellSize);
 
-                this.UnminedLayer.alpha = 0.95;
+                this.UnminedLayer.alpha = 0.50;
 
                 this.Player = wm.Player;
                 this.Player.View = this.add.sprite(0, 0, "player");
@@ -44,16 +41,16 @@ var WM;
                 this.DrawRoom();
 
                 this.ButtonDown = this.game.add.existing(new WM.UI.TextButton(this.game, "down", 50, 50, function () {
-                    wm.Level.MovePlayer("down");
+                    wm.Level.HandleInput("down");
                 }));
                 this.ButtonUp = this.game.add.existing(new WM.UI.TextButton(this.game, "up", 50, 50, function () {
-                    wm.Level.MovePlayer("up");
+                    wm.Level.HandleInput("up");
                 }));
                 this.ButtonLeft = this.game.add.existing(new WM.UI.TextButton(this.game, "left", 50, 50, function () {
-                    wm.Level.MovePlayer("left");
+                    wm.Level.HandleInput("left");
                 }));
                 this.ButtonRight = this.game.add.existing(new WM.UI.TextButton(this.game, "right", 50, 50, function () {
-                    wm.Level.MovePlayer("right");
+                    wm.Level.HandleInput("right");
                 }));
                 this.ButtonDown.x = WM.G.MapWidth + 25;
                 this.ButtonDown.y = WM.G.MapHeight;
@@ -70,16 +67,16 @@ var WM;
 
                 this.Cursors = this.input.keyboard.createCursorKeys();
                 this.Cursors.down.onDown.add(function () {
-                    wm.Level.MovePlayer("down");
+                    wm.Level.HandleInput("down");
                 }, this);
                 this.Cursors.up.onDown.add(function () {
-                    wm.Level.MovePlayer("up");
+                    wm.Level.HandleInput("up");
                 }, this);
                 this.Cursors.left.onDown.add(function () {
-                    wm.Level.MovePlayer("left");
+                    wm.Level.HandleInput("left");
                 }, this);
                 this.Cursors.right.onDown.add(function () {
-                    wm.Level.MovePlayer("right");
+                    wm.Level.HandleInput("right");
                 }, this);
 
                 this.Marker = this.add.graphics(0, 0);
@@ -100,16 +97,20 @@ var WM;
                 }
             };
 
-            Level.prototype.MovePlayer = function (dir) {
-                var target = this.Room.GetNeighbour(dir, this.Player.Cell.RoomX, this.Player.Cell.RoomY);
-                if (target != null) {
-                    this.Room.MoveToTile(this.Player, target.RoomY, target.RoomX);
-                    this.DrawCell(target.RoomX, target.RoomY, this.UnminedLayer);
-                    this.DrawCell(target.RoomX, target.RoomY, this.FloorLayer);
-                    this.DrawCell(target.RoomX, target.RoomY, this.EventsLayer);
-                    this.DrawCell(target.RoomX, target.RoomY, this.WallsLayer);
+            Level.prototype.HandleInput = function (dir) {
+                if (this.Dialog == null) {
+                    var target = this.Room.GetNeighbour(dir, this.Player.Cell.RoomX, this.Player.Cell.RoomY);
+                    if (target != null) {
+                        this.Room.MoveToTile(this.Player, target.RoomY, target.RoomX);
+                        this.DrawCell(target.RoomX, target.RoomY, this.UnminedLayer);
+                        this.DrawCell(target.RoomX, target.RoomY, this.FloorLayer);
+                        this.DrawCell(target.RoomX, target.RoomY, this.EventsLayer);
+                        this.DrawCell(target.RoomX, target.RoomY, this.WallsLayer);
+                    }
+                    this.PlayerStats.setText("Energy: " + this.Player.Energy);
+                } else {
+                    this.Dialog.CurrentPanel.HandleInput(dir);
                 }
-                this.PlayerStats.setText("Energy: " + this.Player.Energy);
             };
 
             Level.prototype.ShowDialog = function (event, cell) {

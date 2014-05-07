@@ -18,6 +18,8 @@ var WM;
             configurable: true
         });
         G.CellSize = 32;
+        G.GameWidth = 1024;
+        G.GameHeight = 672;
         G.RoomWidth = 15;
         G.RoomHeight = 11;
         G.LevelWidth = 3;
@@ -87,8 +89,37 @@ var WM;
                 "grid": [
                     "XXXXXX",
                     "X...X.",
-                    "X.ttt.",
+                    "X.ttte",
                     "XXXXXX"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "tX.t.X",
+                    "eX.X.X",
+                    ".X.X.X",
+                    "...X.."]
+            },
+            {
+                "type": "vertical",
+                "grid": [
+                    ".....X",
+                    "XX....",
+                    ".....X",
+                    "XX..X.",
+                    ".....X",
+                    ".....X",
+                    "XX..X.",
+                    "...X..",
+                    "XX.XXX"]
+            },
+            {
+                "type": "horizontal",
+                "grid": [
+                    ".............",
+                    ".XXXXXXXX.X..",
+                    ".X...........",
+                    "XX.XXXXXXXXXX"]
             }
         ];
         G.events = {

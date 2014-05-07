@@ -26,10 +26,9 @@ var WM;
                     }
                 }
 
-                for (var k = 0; k < 4; k++) {
-                    var nr = Math.floor(Math.random() * WM.G.RoomSections.length);
-                    new RoomSection(WM.G.RoomSections[nr].type, WM.G.RoomSections[nr].grid).ApplyToRoom(this, k + 1);
-                }
+                console.log("new room");
+                var handler = new WM.Level.RoomSectionsHandler(this);
+                handler.FillRoom();
             }
             Room.prototype.CellReachable = function (player, x, y) {
                 var px = player.Cell.RoomX;
@@ -124,83 +123,6 @@ var WM;
             return RoomExit;
         })();
         Level.RoomExit = RoomExit;
-
-        var RoomSection = (function () {
-            function RoomSection(type, grid) {
-                this.Type = type;
-
-                this.Grid = grid.slice();
-            }
-            RoomSection.prototype.Dump = function () {
-                console.log(this.Grid.join("\n"));
-            };
-
-            RoomSection.prototype.Flip = function (type) {
-                if (type == "horizontal") {
-                    for (var i = 0; i < this.Grid.length; i++) {
-                        this.Grid[i] = this.Grid[i].split("").reverse().join("");
-                    }
-                }
-                if (type == "vertical") {
-                    for (var i = 0; i < (this.Grid.length / 2); i++) {
-                        var temp = this.Grid[i];
-                        var target = i + ((this.Grid.length - 1) - (i * 2));
-                        this.Grid[i] = this.Grid[target];
-                        this.Grid[target] = temp;
-                    }
-                }
-            };
-
-            RoomSection.prototype.ApplyToRoom = function (room, quadrant) {
-                var posX = 1;
-                var posY = 1;
-                var newX = Math.floor((WM.G.RoomHeight / 2) + 1);
-                var newY = Math.floor((WM.G.RoomWidth / 2) + 1);
-
-                if (this.Type == "fourth") {
-                    switch (quadrant) {
-                        case 2:
-                            this.Flip("horizontal");
-                            posY = newY;
-                            break;
-                        case 3:
-                            this.Flip("vertical");
-                            posX = newX;
-                            break;
-                        case 4:
-                            this.Flip("horizontal");
-                            this.Flip("vertical");
-                            posX = newX;
-                            posY = newY;
-                            break;
-                    }
-                }
-
-                if (this.Type == "horizontal") {
-                    if (quadrant == 2 || quadrant == 4) {
-                        this.Flip("horizontal");
-                        posY = newY;
-                    }
-                }
-
-                if (this.Type == "vertical") {
-                    if (quadrant == 3 || quadrant == 4) {
-                        this.Flip("vertical");
-                        posX = newX;
-                    }
-                }
-
-                for (var i = posX; i < posX + this.Grid.length; i++) {
-                    for (var j = posY; j < posY + this.Grid[0].length; j++) {
-                        if (room.Inside(i, j)) {
-                            room.Cells[i][j] = new WM.Level.Cell(i, j, this.Grid[i - posX][j - posY]);
-                        }
-                    }
-                }
-            };
-            return RoomSection;
-        })();
-        Level.RoomSection = RoomSection;
     })(WM.Level || (WM.Level = {}));
     var Level = WM.Level;
 })(WM || (WM = {}));

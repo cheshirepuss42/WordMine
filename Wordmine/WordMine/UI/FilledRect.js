@@ -11,16 +11,19 @@ var WM;
             __extends(FilledRect, _super);
             function FilledRect(game, width, height, color) {
                 if (typeof color === "undefined") { color = "#fff"; }
-                _super.call(this, game, width, height);
+                _super.call(this, game, width, height, FilledRect.getBMD(game, width, height, color));
                 this.color = color;
-                this.loadTexture(FilledRect.getBMD(game, width, height, color), null);
+
+                this.visible = true;
+                this.exists = true;
             }
             FilledRect.getBMD = function (game, width, height, color) {
                 if (typeof color === "undefined") { color = "#fff"; }
-                var bmd = new Phaser.BitmapData(game, "bla", width, height);
-                bmd.context.fillStyle = color;
-                bmd.context.rect(0, 0, width, height);
-                bmd.context.fill();
+                var bmd = new Phaser.BitmapData(game, "", width, height);
+                bmd.ctx.beginPath();
+                bmd.ctx.rect(0, 0, width, height);
+                bmd.ctx.fillStyle = color;
+                bmd.ctx.fill();
                 return bmd;
             };
             return FilledRect;

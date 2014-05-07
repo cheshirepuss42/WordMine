@@ -78,13 +78,22 @@ module WM {
             }
             ,
             {
+                "type": "fourth",
+                "grid": [
+                    "tX.t.X",
+                    "eX.X.X",
+                    ".X.X.X",
+                    "...X.."]
+            }
+            ,
+            {
                 "type": "vertical",
-                "grid": [   "RRRR.X",
+                "grid": [   ".....X",
+                            "XX....",
+                            ".....X",
                             "XX..X.",
-                            "RRRR.X",
-                            "XX..X.",
-                            "......",
-                            "RRRR.X",
+                            ".....X",
+                            ".....X",
                             "XX..X.",
                             "...X..",
                             "XX.XXX"]
@@ -94,7 +103,7 @@ module WM {
                 "type": "horizontal",
                 "grid": [   ".............",
                             ".XXXXXXXX.X..",
-                            "RXD....R...R.",
+                            ".X...........",
                             "XX.XXXXXXXXXX"]
             }
         ]

@@ -81,7 +81,7 @@ var WM;
                 this.UnminedLayer = this.Map.createBlankLayer("unmined", WM.G.RoomWidth, WM.G.RoomHeight, WM.G.CellSize, WM.G.CellSize);
 
                 //show a little of what is under the unminedlayer for debugging
-                this.UnminedLayer.alpha = 0.25;
+                this.UnminedLayer.alpha = 0.50;
 
                 //make the player, his view and his position
                 this.Player = wm.Player;
@@ -1150,14 +1150,22 @@ var WM;
                     "XXXXXX"]
             },
             {
+                "type": "fourth",
+                "grid": [
+                    "tX.t.X",
+                    "eX.X.X",
+                    ".X.X.X",
+                    "...X.."]
+            },
+            {
                 "type": "vertical",
                 "grid": [
-                    "RRRR.X",
+                    ".....X",
+                    "XX....",
+                    ".....X",
                     "XX..X.",
-                    "RRRR.X",
-                    "XX..X.",
-                    "......",
-                    "RRRR.X",
+                    ".....X",
+                    ".....X",
                     "XX..X.",
                     "...X..",
                     "XX.XXX"]
@@ -1167,7 +1175,7 @@ var WM;
                 "grid": [
                     ".............",
                     ".XXXXXXXX.X..",
-                    "RXD....R...R.",
+                    ".X...........",
                     "XX.XXXXXXXXXX"]
             }
         ];

@@ -14,6 +14,7 @@ var WM;
                 if (typeof height === "undefined") { height = 50; }
                 if (typeof color === "undefined") { color = "#eee"; }
                 _super.call(this, game, null, "button");
+                this.callback = callback;
                 this.w = width;
                 this.h = height;
                 this.button = this.add(new Phaser.Button(this.game, 0, 0, "", callback, context));
@@ -25,10 +26,10 @@ var WM;
                 this.Hide();
             }
             TextButton.prototype.Hide = function () {
-                this.exists = false;
+                this.exists = this.visible = false;
             };
             TextButton.prototype.Show = function () {
-                this.exists = true;
+                this.exists = this.visible = true;
             };
             return TextButton;
         })(Phaser.Group);

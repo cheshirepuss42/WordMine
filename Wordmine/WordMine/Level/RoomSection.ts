@@ -99,7 +99,7 @@
             if (section.Type == "horizontal") {
                 if (quadrant == 2 || quadrant == 3) {
                     this.SectionsFilled[2] = this.SectionsFilled[3] = true;
-                    section.Flip("horizontal");
+                    section.Flip("vertical");
                     posX = newX;
                 }
                 else {
