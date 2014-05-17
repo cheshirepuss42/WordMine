@@ -100,6 +100,8 @@
                 if (quadrant == 2 || quadrant == 3) {
                     this.SectionsFilled[2] = this.SectionsFilled[3] = true;
                     section.Flip("vertical");
+                    if (Math.random() > 0.5)
+                        section.Flip("horizontal");
                     posX = newX;
                 }
                 else {
@@ -110,6 +112,8 @@
                 if (quadrant == 1 || quadrant == 3) {
                     this.SectionsFilled[1] = this.SectionsFilled[3] = true;
                     section.Flip("horizontal");
+                    if (Math.random() > 0.5)
+                        section.Flip("vertical");
                     posY = newY;
                 }
                 else {

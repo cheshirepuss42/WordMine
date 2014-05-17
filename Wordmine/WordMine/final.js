@@ -1,9 +1,769 @@
-﻿var __extends = this.__extends || function (d, b) {
+﻿var WM;
+(function (WM) {
+    (function (Util) {
+        var Grid = (function () {
+            function Grid(w, h) {
+                this.Width = w;
+                this.Height = h;
+                this.Cells = new Array();
+            }
+            Grid.prototype.Set = function (x, y, content) {
+                this.Cells[x][y] = content;
+            };
+            Grid.prototype.Get = function (x, y) {
+                return this.Cells[x][y];
+            };
+            Grid.prototype.Inside = function (x, y) {
+                return x >= 0 && x < this.Height && y >= 0 && y < this.Width;
+            };
+            Grid.prototype.AsString = function () {
+                var str = "";
+                for (var i = 0; i < this.Height; i++) {
+                    for (var j = 0; j < this.Width; j++) {
+                        str += this.Cells[i][j].toString();
+                    }
+                    str += "\n";
+                }
+                return str;
+            };
+            Grid.prototype.Dump = function () {
+                console.log(this.AsString());
+            };
+            Grid.prototype.GetNeighbour = function (dir, x, y) {
+                var nx = x, ny = y;
+                switch (dir) {
+                    case "up":
+                        nx--;
+                        break;
+                    case "down":
+                        nx++;
+                        break;
+                    case "left":
+                        ny--;
+                        break;
+                    case "right":
+                        ny++;
+                        break;
+                }
+                if (this.Inside(nx, ny))
+                    return this.Cells[nx][ny];
+                else
+                    return null;
+            };
+            Grid.prototype.Middle = function () {
+                return this.Cells[Math.floor((this.Height - 1) / 2)][Math.floor((this.Width - 1) / 2)];
+            };
+            Grid.prototype.Flip = function (horizontal) {
+                if (horizontal) {
+                    for (var i = 0; i < this.Height; i++) {
+                        for (var j = 0; j < this.Width / 2; j++) {
+                            var target = j + ((this.Width - 1) - (j * 2));
+                            var temp = this.Cells[j][i];
+                            this.Cells[j][i] = this.Cells[target][i];
+                            this.Cells[target][i] = temp;
+                        }
+                    }
+                } else {
+                    for (var i = 0; i < this.Width; i++) {
+                        for (var j = 0; j < this.Height / 2; j++) {
+                            var target = j + ((this.Height - 1) - (j * 2));
+                            var temp = this.Cells[i][j];
+                            this.Cells[i][j] = this.Cells[i][target];
+                            this.Cells[i][target] = temp;
+                        }
+                    }
+                }
+            };
+            return Grid;
+        })();
+        Util.Grid = Grid;
+    })(WM.Util || (WM.Util = {}));
+    var Util = WM.Util;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (Level) {
+        //this contains all the data for the cell, but none of the drawing routines. The drawing is done in the room
+        var Cell = (function () {
+            function Cell(roomx, roomy, typechar) {
+                this.RoomX = roomx;
+                this.RoomY = roomy;
+                this.TypeChar = typechar;
+                this.Passable = true;
+                this.MinedOut = false;
+                this.Event = "";
+                this.Creep = null;
+                this.Treasure = null;
+                this.Exit = null;
+
+                switch (this.TypeChar) {
+                    case "X":
+                        this.Passable = false;
+                        break;
+                    case "t":
+                        this.Treasure = new WM.Treasure.Treasure(1);
+                        break;
+                    case "e":
+                        this.Event = "first";
+                }
+            }
+            //see if the url indicates whether to show the unminedlayer
+            Cell.prototype.UnminedByQuery = function () {
+                var querystring = window.location.href.split("?");
+                var fromquery = (querystring.length > 1) ? querystring[1] : "";
+                return (fromquery.indexOf("mined") > -1) ? true : false;
+            };
+
+            //has a some property which causes an event
+            Cell.prototype.HasEvent = function () {
+                return this.Event != "" || this.Creep != null || this.Treasure != null || this.Exit != null;
+            };
+
+            //get the tilesheetindex for the given layer
+            Cell.prototype.GetTileIndex = function (layername) {
+                var index = 0;
+                switch (layername) {
+                    case "floor":
+                        index = 39;
+                        break;
+                    case "walls":
+                        index = (this.Passable) ? index : 91;
+                        break;
+                    case "events":
+                        if (this.Event != "") {
+                            index = 25;
+                        } else if (this.Treasure != null) {
+                            index = 9;
+                        }
+                        break;
+                    case "unmined":
+                        index = (this.MinedOut) ? index : 37;
+                        break;
+                }
+                return index;
+            };
+            Cell.prototype.toString = function () {
+                return this.TypeChar;
+            };
+            return Cell;
+        })();
+        Level.Cell = Cell;
+    })(WM.Level || (WM.Level = {}));
+    var Level = WM.Level;
+})(WM || (WM = {}));
+var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+var WM;
+(function (WM) {
+    (function (Level) {
+        var Room = (function (_super) {
+            __extends(Room, _super);
+            function Room(width, height, x, y, roomdata) {
+                _super.call(this, width, height);
+
+                //set position in lvlgrid
+                this.PosX = x;
+                this.PosY = y;
+
+                //exits are filled and applied later at lvldata
+                this.Exits = new Array();
+
+                for (var i = 0; i < this.Height; i++) {
+                    this.Cells[i] = new Array(this.Width);
+                    for (var j = 0; j < this.Width; j++) {
+                        this.Cells[i][j] = new Level.Cell(i, j, ".");
+
+                        //set surrounding walls, exits are set in lvldata
+                        this.Cells[i][j].Passable = (i == this.Height - 1 || i == 0 || j == this.Width - 1 || j == 0) ? false : true;
+                    }
+                }
+
+                //applying random roomsections as defined in g.roomsections, needs 1x2 and 2x1 sections
+                //keep track of which sections are filled
+                console.log("new room");
+                var handler = new Level.RoomSectionsHandler(this);
+                handler.FillRoom();
+            }
+            //can the player reach the minedout cell
+            Room.prototype.CellReachable = function (player, x, y) {
+                var px = player.Cell.RoomX;
+                var py = player.Cell.RoomY;
+                return this.Cells[x][y].MinedOut || (px + 1 == x && py == y) || (px - 1 == x && py == y) || (px == x && py + 1 == y) || (px == x && py - 1 == y);
+            };
+
+            //handle interaction between player and tile
+            Room.prototype.MoveToTile = function (player, x, y) {
+                //is it in the map?
+                if (this.Inside(y, x)) {
+                    var target = this.Cells[y][x];
+
+                    //is cell minedout?
+                    if (target.MinedOut) {
+                        //if there is some type of event
+                        if (target.HasEvent()) {
+                            //if there is an exit, handle it
+                            if (target.Exit != null)
+                                wm.Level.HandleExit(target.Exit);
+
+                            //if there is treasure, pick it up
+                            if (target.Treasure != null) {
+                                target.Treasure.Handle(player);
+                                player.Cell = target;
+                                new WM.UI.TextSpark("+" + target.Treasure.Resources + " energy", player.View.x, player.View.y);
+                                target.Treasure = null;
+                            }
+
+                            //if there is a dialog, show it
+                            //console.log(target.Event);
+                            if (target.Event != "") {
+                                wm.Level.ShowDialog(target.Event, target);
+                            }
+                        } else {
+                            if (target.Passable)
+                                player.Cell = target;
+                        }
+                    } else {
+                        target.MinedOut = true;
+                        player.Energy -= 10;
+                        new WM.UI.TextSpark("-10 energy", player.View.x, player.View.y);
+                    }
+                }
+            };
+
+            //add the exit and make the cell an exit
+            Room.prototype.AddExit = function (exit) {
+                this.Exits.push(exit);
+                var cell = this.GetExitCell(exit.ExitType);
+                cell.Exit = exit;
+                cell.Passable = true;
+            };
+
+            //find the cell based on the type of exit
+            Room.prototype.GetExitCell = function (exittype) {
+                var hw = Math.floor(this.Width / 2);
+                var hh = Math.floor(this.Height / 2);
+                switch (exittype) {
+                    case "left":
+                        return this.Cells[hh][0];
+                    case "bottom":
+                        return this.Cells[this.Height - 1][hw];
+                    case "right":
+                        return this.Cells[hh][this.Width - 1];
+                    case "top":
+                        return this.Cells[0][hw];
+                    default:
+                        return this.Cells[hh][hw];
+                }
+            };
+            return Room;
+        })(WM.Util.Grid);
+        Level.Room = Room;
+
+        //class for the exits, with the target and the type
+        var RoomExit = (function () {
+            function RoomExit(target, type) {
+                this.TargetRoom = target;
+                this.ExitType = type;
+            }
+            //find the cell where the player comes out when using the exit
+            RoomExit.prototype.EntranceCell = function () {
+                var entrance = "";
+                switch (this.ExitType) {
+                    case "top":
+                        entrance = "bottom";
+                        break;
+                    case "bottom":
+                        entrance = "top";
+                        break;
+                    case "left":
+                        entrance = "right";
+                        break;
+                    case "right":
+                        entrance = "left";
+                        break;
+                    default:
+                        entrance = "middle";
+                        break;
+                }
+                return this.TargetRoom.GetExitCell(entrance);
+            };
+            return RoomExit;
+        })();
+        Level.RoomExit = RoomExit;
+    })(WM.Level || (WM.Level = {}));
+    var Level = WM.Level;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    /// <reference path="../_reference.ts" />
+    (function (Level) {
+        var LvlData = (function (_super) {
+            __extends(LvlData, _super);
+            function LvlData(width, height) {
+                _super.call(this, width, height);
+
+                for (var i = 0; i < this.Height; i++) {
+                    this.Cells[i] = new Array();
+                    for (var j = 0; j < this.Width; j++) {
+                        this.Cells[i][j] = new Level.Room(WM.G.RoomWidth, WM.G.RoomHeight, i, j);
+                    }
+                }
+
+                //apply the exits in the rooms
+                this.SetExits();
+            }
+            LvlData.prototype.SetExits = function () {
+                for (var i = 0; i < this.Height; i++) {
+                    for (var j = 0; j < this.Width; j++) {
+                        var here = this.Cells[i][j];
+
+                        //get the surrounding cells
+                        var above = (this.Inside(i, j - 1)) ? this.Cells[i][j - 1] : null;
+                        var below = (this.Inside(i, j + 1)) ? this.Cells[i][j + 1] : null;
+                        var left = (this.Inside(i - 1, j)) ? this.Cells[i - 1][j] : null;
+                        var right = (this.Inside(i + 1, j)) ? this.Cells[i + 1][j] : null;
+
+                        //add an exit to them if necessary
+                        if (above != null) {
+                            this.Cells[i][j].AddExit(new Level.RoomExit(above, "top"));
+                        }
+                        if (below != null) {
+                            this.Cells[i][j].AddExit(new Level.RoomExit(below, "bottom"));
+                        }
+                        if (left != null) {
+                            this.Cells[i][j].AddExit(new Level.RoomExit(left, "left"));
+                        }
+                        if (right != null) {
+                            this.Cells[i][j].AddExit(new Level.RoomExit(right, "right"));
+                        }
+                    }
+                }
+            };
+            return LvlData;
+        })(WM.Util.Grid);
+        Level.LvlData = LvlData;
+    })(WM.Level || (WM.Level = {}));
+    var Level = WM.Level;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    /// <reference path="../_reference.ts" />
+    (function (Dialog) {
+        var Event = (function () {
+            function Event(game, eventdata, cell) {
+                this.Cell = cell;
+                this.Panels = new Array();
+                this.CurrentPanel = null;
+                for (var i = 0; i < eventdata.panels.length; i++) {
+                    this.Panels.push(game.add.existing(new WM.UI.DialogPanel(game, eventdata.panels[i])));
+                }
+            }
+            Event.prototype.ShowPanel = function (nr) {
+                if (typeof nr === "undefined") { nr = 0; }
+                console.log("nr", nr, this);
+                if (this.CurrentPanel == null) {
+                    console.log("--first");
+                    this.CurrentPanel = this.Panels[nr];
+                    this.CurrentPanel.Show();
+                } else if (nr == -1) {
+                    console.log("--gone");
+                    this.CurrentPanel.Hide();
+                    this.Cell.Event = "";
+                    wm.Level.Dialog = null;
+                    wm.Level.DrawRoom();
+                } else if (nr == -2) {
+                    console.log("--stay");
+                    this.CurrentPanel.Hide();
+                    wm.Level.Dialog = null;
+                    wm.Level.DrawRoom();
+                } else {
+                    console.log("--next");
+                    this.CurrentPanel.Hide(); //close panel and show next
+                    this.CurrentPanel = this.Panels[nr];
+                    this.CurrentPanel.Show();
+                }
+            };
+            return Event;
+        })();
+        Dialog.Event = Event;
+    })(WM.Dialog || (WM.Dialog = {}));
+    var Dialog = WM.Dialog;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (Dialog) {
+        var Effect = (function () {
+            function Effect() {
+            }
+            Effect.Happens = function (strs) {
+                for (var i = 0; i < strs.length; i++) {
+                    var result = false;
+                    var elems = strs[i].split(' ');
+                    if (elems[0] == "has") {
+                        result = wm.Player.Has(elems[1]);
+                    } else {
+                        elems[0] = elems[0].substr(1, elems[0].length - 1); //remove star
+                        var call = elems[0].split('.');
+                        var mod = elems[1];
+                        var am = elems[2];
+                        var target = wm[call[0]][call[1]];
+                        switch (mod) {
+                            case "true":
+                                result = target == true;
+                                break;
+                            case "false":
+                                result = target == false;
+                                break;
+                            case "=":
+                                result = am == target;
+                                break;
+                            case ">":
+                                result = am < target;
+                                break;
+                            case "<":
+                                result = am > target;
+                                break;
+                        }
+                    }
+                    if (!result)
+                        return false;
+                }
+                return true;
+            };
+            Effect.Call = function (str) {
+                var f;
+                if (!isNaN(parseFloat(str))) {
+                    f = function () {
+                        wm.Level.Dialog.ShowPanel(+str);
+                    };
+                } else {
+                    var elems = str.split(' ');
+                    var call = elems[0];
+                    switch (call) {
+                        case "add":
+                            f = function () {
+                                wm.Player.AddItem(elems[1]);
+                            };
+                            break;
+                        case "lose":
+                            f = function () {
+                                wm.Player.LoseItem(elems[1]);
+                            };
+                            break;
+                    }
+
+                    var mod = elems[1];
+                    var am = elems[2];
+                    if (call.indexOf("*") < 0) {
+                        //special function
+                        f = function () {
+                            wm[call](am);
+                        };
+                    } else {
+                        //
+                        call = call.replace("*", "");
+                        var elems = call.split('.');
+                        var context = wm[elems[0]];
+                        f = function () {
+                            switch (mod) {
+                                case "+":
+                                    context[elems[1]] += +am;
+                                    break;
+                                case "-":
+                                    context[elems[1]] -= +am;
+                                    break;
+                                case "*":
+                                    context[elems[1]] *= +am;
+                                    break;
+                                case "/":
+                                    context[elems[1]] /= +am;
+                                    break;
+                                case "=":
+                                    context[elems[1]] = +am;
+                                    break;
+                            }
+                        };
+                    }
+                }
+                return f;
+            };
+            return Effect;
+        })();
+        Dialog.Effect = Effect;
+    })(WM.Dialog || (WM.Dialog = {}));
+    var Dialog = WM.Dialog;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (UI) {
+        var FilledRect = (function (_super) {
+            __extends(FilledRect, _super);
+            function FilledRect(game, width, height, color) {
+                if (typeof color === "undefined") { color = "#fff"; }
+                _super.call(this, game, width, height, FilledRect.getBMD(game, width, height, color));
+                this.color = color;
+
+                //this.loadTexture(, null);
+                this.visible = true;
+                this.exists = true;
+                //this.
+            }
+            FilledRect.getBMD = function (game, width, height, color) {
+                if (typeof color === "undefined") { color = "#fff"; }
+                var bmd = new Phaser.BitmapData(game, "", width, height);
+                bmd.ctx.beginPath();
+                bmd.ctx.rect(0, 0, width, height);
+                bmd.ctx.fillStyle = color;
+                bmd.ctx.fill();
+                return bmd;
+            };
+            return FilledRect;
+        })(Phaser.Sprite);
+        UI.FilledRect = FilledRect;
+    })(WM.UI || (WM.UI = {}));
+    var UI = WM.UI;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (UI) {
+        var ProgressBar = (function (_super) {
+            __extends(ProgressBar, _super);
+            function ProgressBar(game, width, height) {
+                if (typeof width === "undefined") { width = 100; }
+                if (typeof height === "undefined") { height = 50; }
+                _super.call(this, game, null, "progressbar");
+                this._filled = 0;
+                this.padding = 5;
+                this.dpadding = this.padding * 2;
+                this.background = this.add(new UI.FilledRect(game, width, height));
+                this.bar = this.add(new UI.FilledRect(game, width - this.dpadding, height - this.dpadding, "#000"));
+                this.bar.x += this.padding * 3;
+                this.bar.y += this.padding * 3;
+                this.width = width;
+                this.height = height;
+            }
+            Object.defineProperty(ProgressBar.prototype, "FilledAmount", {
+                get: function () {
+                    return this._filled;
+                },
+                set: function (percent) {
+                    this._filled = percent;
+                    this.SetAmount(percent);
+                },
+                enumerable: true,
+                configurable: true
+            });
+
+            ProgressBar.prototype.SetAmount = function (percent) {
+                if (percent >= 0 && percent <= 1) {
+                    var w = (this.background.width - this.dpadding) * percent;
+                    this.bar.width = w;
+                }
+            };
+            return ProgressBar;
+        })(Phaser.Group);
+        UI.ProgressBar = ProgressBar;
+    })(WM.UI || (WM.UI = {}));
+    var UI = WM.UI;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (UI) {
+        var TextButton = (function (_super) {
+            __extends(TextButton, _super);
+            function TextButton(game, text, width, height, callback, context, color) {
+                if (typeof width === "undefined") { width = 100; }
+                if (typeof height === "undefined") { height = 50; }
+                if (typeof color === "undefined") { color = "#eee"; }
+                _super.call(this, game, null, "button");
+                this.callback = callback;
+                this.w = width;
+                this.h = height;
+                this.button = this.add(new Phaser.Button(this.game, 0, 0, "", callback, context));
+                this.button.loadTexture(UI.FilledRect.getBMD(this.game, this.w, this.h, color), 0);
+                this.text = this.add(new Phaser.Text(this.game, 0, 0, text, WM.G.style));
+                this.text.anchor.set(0.5, 0.5);
+                this.text.x = this.button.width / 2;
+                this.text.y = this.button.height / 2;
+                this.Hide();
+            }
+            TextButton.prototype.Hide = function () {
+                this.exists = this.visible = false;
+            };
+            TextButton.prototype.Show = function () {
+                this.exists = this.visible = true;
+            };
+            return TextButton;
+        })(Phaser.Group);
+        UI.TextButton = TextButton;
+    })(WM.UI || (WM.UI = {}));
+    var UI = WM.UI;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (UI) {
+        var Popup = (function (_super) {
+            __extends(Popup, _super);
+            function Popup(game, x, y, w, h) {
+                _super.call(this, game, null, "popup", false);
+                this.x = x;
+                this.y = y;
+                this.width = w;
+                this.height = h;
+                this.Background = this.add(new Phaser.Image(game, 0, 0, UI.FilledRect.getBMD(game, w, h, "#eee"), null));
+            }
+            return Popup;
+        })(Phaser.Group);
+        UI.Popup = Popup;
+    })(WM.UI || (WM.UI = {}));
+    var UI = WM.UI;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    /// <reference path="../_reference.ts" />
+    (function (UI) {
+        var DialogPanel = (function (_super) {
+            __extends(DialogPanel, _super);
+            function DialogPanel(game, panel) {
+                _super.call(this, game, 0, 0, WM.G.MapWidth, WM.G.MapHeight);
+                this.padding = 10;
+                this.options = new Array();
+                for (var j = 0; j < panel.options.length; j++) {
+                    var option = panel.options[j];
+                    if (WM.Dialog.Effect.Happens(option.conditions)) {
+                        var effects = function () {
+                            for (var i = 0; i < option.effects.length; i++) {
+                                WM.Dialog.Effect.Call(option.effects[i])();
+                            }
+                        };
+                        var eopt = new UI.DialogOption(game, option.text, WM.G.MapWidth, 70, effects);
+                        this.add(eopt);
+                        eopt.y += 200 + ((this.options.length - 1) * eopt.h);
+                        this.options.push(eopt);
+                    }
+                }
+                this.image = panel.img;
+                this.text = this.add(new Phaser.Text(game, this.padding, this.padding, panel.text, WM.G.style));
+                this.SelectedOption = 0;
+                this.Hide();
+            }
+            DialogPanel.prototype.HandleInput = function (dir) {
+                this.options[this.SelectedOption].button.tint = 0xeeeeee;
+                if (dir == "down") {
+                    this.SelectedOption++;
+                    this.SelectedOption = (this.SelectedOption > this.options.length - 1) ? 0 : this.SelectedOption;
+                } else if (dir == "up") {
+                    this.SelectedOption--;
+                    this.SelectedOption = (this.SelectedOption < 0) ? this.options.length - 1 : this.SelectedOption;
+                } else
+                    this.options[this.SelectedOption].callback();
+                this.options[this.SelectedOption].button.tint = 0xaaaaee;
+            };
+            DialogPanel.prototype.Show = function () {
+                for (var i = 0; i < this.options.length; i++) {
+                    this.options[i].Show();
+                }
+                this.text.exists = this.text.visible = true;
+                this.Background.exists = this.Background.visible = true;
+                this.visible = this.exists = true;
+            };
+            DialogPanel.prototype.Hide = function () {
+                for (var i = 0; i < this.options.length; i++) {
+                    this.options[i].Hide();
+                }
+                this.text.exists = this.text.visible = false;
+                this.Background.exists = this.Background.visible = false;
+                this.visible = this.exists = false;
+            };
+            return DialogPanel;
+        })(UI.Popup);
+        UI.DialogPanel = DialogPanel;
+    })(WM.UI || (WM.UI = {}));
+    var UI = WM.UI;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    /// <reference path="../_reference.ts" />
+    (function (UI) {
+        var DialogOption = (function (_super) {
+            __extends(DialogOption, _super);
+            function DialogOption(game, text, width, height, callback, context) {
+                _super.call(this, game, text, width, height, callback, context, "#ddf");
+            }
+            return DialogOption;
+        })(UI.TextButton);
+        UI.DialogOption = DialogOption;
+    })(WM.UI || (WM.UI = {}));
+    var UI = WM.UI;
+})(WM || (WM = {}));
+/// <reference path="../_reference.ts" />
+var WM;
+(function (WM) {
+    (function (_Letter) {
+        var Letter = (function (_super) {
+            __extends(Letter, _super);
+            function Letter(game, text, callback) {
+                _super.call(this, game, text, 100, 100, callback);
+                this.name = "letter";
+            }
+            return Letter;
+        })(WM.UI.TextButton);
+        _Letter.Letter = Letter;
+    })(WM.Letter || (WM.Letter = {}));
+    var Letter = WM.Letter;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (_Player) {
+        var Player = (function () {
+            function Player() {
+                this.Health = 100;
+                this.Energy = 250;
+            }
+            Object.defineProperty(Player.prototype, "Cell", {
+                get: function () {
+                    return this._Cell;
+                },
+                set: function (h) {
+                    this._Cell = h;
+                    this.View.y = h.RoomX * WM.G.CellSize;
+                    this.View.x = h.RoomY * WM.G.CellSize;
+                },
+                enumerable: true,
+                configurable: true
+            });
+
+            Object.defineProperty(Player.prototype, "Health", {
+                get: function () {
+                    return this._health;
+                },
+                set: function (h) {
+                    this._health = h;
+                },
+                enumerable: true,
+                configurable: true
+            });
+
+            Player.prototype.Has = function (item) {
+                return true;
+            };
+            Player.prototype.AddItem = function (item) {
+            };
+            Player.prototype.LoseItem = function (item) {
+            };
+            Player.prototype.Move = function (dir) {
+                //handle moving
+            };
+            return Player;
+        })();
+        _Player.Player = Player;
+    })(WM.Player || (WM.Player = {}));
+    var Player = WM.Player;
+})(WM || (WM = {}));
 var WM;
 (function (WM) {
     (function (States) {
@@ -272,765 +1032,51 @@ var WM;
     })(WM.States || (WM.States = {}));
     var States = WM.States;
 })(WM || (WM = {}));
+/*/// <reference path="_reference.ts"/>*/
 var WM;
 (function (WM) {
-    (function (Util) {
-        var Grid = (function () {
-            function Grid(w, h) {
-                this.Width = w;
-                this.Height = h;
-                this.Cells = new Array();
-            }
-            Grid.prototype.Set = function (x, y, content) {
-                this.Cells[x][y] = content;
-            };
-            Grid.prototype.Get = function (x, y) {
-                return this.Cells[x][y];
-            };
-            Grid.prototype.Inside = function (x, y) {
-                return x >= 0 && x < this.Height && y >= 0 && y < this.Width;
-            };
-            Grid.prototype.AsString = function () {
-                var str = "";
-                for (var i = 0; i < this.Height; i++) {
-                    for (var j = 0; j < this.Width; j++) {
-                        str += this.Cells[i][j].toString();
-                    }
-                    str += "\n";
-                }
-                return str;
-            };
-            Grid.prototype.Dump = function () {
-                console.log(this.AsString());
-            };
-            Grid.prototype.GetNeighbour = function (dir, x, y) {
-                var nx = x, ny = y;
-                switch (dir) {
-                    case "up":
-                        nx--;
-                        break;
-                    case "down":
-                        nx++;
-                        break;
-                    case "left":
-                        ny--;
-                        break;
-                    case "right":
-                        ny++;
-                        break;
-                }
-                if (this.Inside(nx, ny))
-                    return this.Cells[nx][ny];
-                else
-                    return null;
-            };
-            Grid.prototype.Middle = function () {
-                return this.Cells[Math.floor((this.Height - 1) / 2)][Math.floor((this.Width - 1) / 2)];
-            };
-            Grid.prototype.Flip = function (horizontal) {
-                if (horizontal) {
-                    for (var i = 0; i < this.Height; i++) {
-                        for (var j = 0; j < this.Width / 2; j++) {
-                            var target = j + ((this.Width - 1) - (j * 2));
-                            var temp = this.Cells[j][i];
-                            this.Cells[j][i] = this.Cells[target][i];
-                            this.Cells[target][i] = temp;
-                        }
-                    }
-                } else {
-                    for (var i = 0; i < this.Width; i++) {
-                        for (var j = 0; j < this.Height / 2; j++) {
-                            var target = j + ((this.Height - 1) - (j * 2));
-                            var temp = this.Cells[i][j];
-                            this.Cells[i][j] = this.Cells[i][target];
-                            this.Cells[i][target] = temp;
-                        }
-                    }
-                }
-            };
-            return Grid;
-        })();
-        Util.Grid = Grid;
-    })(WM.Util || (WM.Util = {}));
-    var Util = WM.Util;
+    var Main = (function (_super) {
+        __extends(Main, _super);
+        function Main() {
+            _super.call(this, WM.G.GameWidth, WM.G.GameHeight, Phaser.CANVAS, "wordmine");
+            this.Player = new WM.Player.Player();
+            this.state.add("boot", WM.States.Boot);
+            this.state.add("preload", WM.States.Preload);
+            this.state.add("menu", WM.States.Menu);
+            this.state.add("level", WM.States.Level);
+            this.state.add("combat", WM.States.Combat);
+            this.state.start("boot");
+        }
+        return Main;
+    })(Phaser.Game);
+    WM.Main = Main;
 })(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (Level) {
-        //this contains all the data for the cell, but none of the drawing routines. The drawing is done in the room
-        var Cell = (function () {
-            function Cell(roomx, roomy, typechar) {
-                this.RoomX = roomx;
-                this.RoomY = roomy;
-                this.TypeChar = typechar;
-                this.Passable = true;
-                this.MinedOut = false;
-                this.Event = "";
-                this.Creep = null;
-                this.Treasure = null;
-                this.Exit = null;
-
-                switch (this.TypeChar) {
-                    case "X":
-                        this.Passable = false;
-                        break;
-                    case "t":
-                        this.Treasure = new WM.Treasure.Treasure(1);
-                        break;
-                    case "e":
-                        this.Event = "first";
-                }
-            }
-            //see if the url indicates whether to show the unminedlayer
-            Cell.prototype.UnminedByQuery = function () {
-                var querystring = window.location.href.split("?");
-                var fromquery = (querystring.length > 1) ? querystring[1] : "";
-                return (fromquery.indexOf("mined") > -1) ? true : false;
-            };
-
-            //has a some property which causes an event
-            Cell.prototype.HasEvent = function () {
-                return this.Event != "" || this.Creep != null || this.Treasure != null || this.Exit != null;
-            };
-
-            //get the tilesheetindex for the given layer
-            Cell.prototype.GetTileIndex = function (layername) {
-                var index = 0;
-                switch (layername) {
-                    case "floor":
-                        index = 39;
-                        break;
-                    case "walls":
-                        index = (this.Passable) ? index : 91;
-                        break;
-                    case "events":
-                        if (this.Event != "") {
-                            index = 25;
-                        } else if (this.Treasure != null) {
-                            index = 9;
-                        }
-                        break;
-                    case "unmined":
-                        index = (this.MinedOut) ? index : 37;
-                        break;
-                }
-                return index;
-            };
-            Cell.prototype.toString = function () {
-                return this.TypeChar;
-            };
-            return Cell;
-        })();
-        Level.Cell = Cell;
-    })(WM.Level || (WM.Level = {}));
-    var Level = WM.Level;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (Level) {
-        var Room = (function (_super) {
-            __extends(Room, _super);
-            function Room(width, height, x, y, roomdata) {
-                _super.call(this, width, height);
-
-                //set position in lvlgrid
-                this.PosX = x;
-                this.PosY = y;
-
-                //exits are filled and applied later at lvldata
-                this.Exits = new Array();
-
-                for (var i = 0; i < this.Height; i++) {
-                    this.Cells[i] = new Array(this.Width);
-                    for (var j = 0; j < this.Width; j++) {
-                        this.Cells[i][j] = new WM.Level.Cell(i, j, ".");
-
-                        //set surrounding walls, exits are set in lvldata
-                        this.Cells[i][j].Passable = (i == this.Height - 1 || i == 0 || j == this.Width - 1 || j == 0) ? false : true;
-                    }
-                }
-
-                //applying random roomsections as defined in g.roomsections, needs 1x2 and 2x1 sections
-                //keep track of which sections are filled
-                console.log("new room");
-                var handler = new WM.Level.RoomSectionsHandler(this);
-                handler.FillRoom();
-            }
-            //can the player reach the minedout cell
-            Room.prototype.CellReachable = function (player, x, y) {
-                var px = player.Cell.RoomX;
-                var py = player.Cell.RoomY;
-                return this.Cells[x][y].MinedOut || (px + 1 == x && py == y) || (px - 1 == x && py == y) || (px == x && py + 1 == y) || (px == x && py - 1 == y);
-            };
-
-            //handle interaction between player and tile
-            Room.prototype.MoveToTile = function (player, x, y) {
-                //is it in the map?
-                if (this.Inside(y, x)) {
-                    var target = this.Cells[y][x];
-
-                    //is cell minedout?
-                    if (target.MinedOut) {
-                        //if there is some type of event
-                        if (target.HasEvent()) {
-                            //if there is an exit, handle it
-                            if (target.Exit != null)
-                                wm.Level.HandleExit(target.Exit);
-
-                            //if there is treasure, pick it up
-                            if (target.Treasure != null) {
-                                target.Treasure.Handle(player);
-                                player.Cell = target;
-                                new WM.UI.TextSpark("+" + target.Treasure.Resources + " energy", player.View.x, player.View.y);
-                                target.Treasure = null;
-                            }
-
-                            //if there is a dialog, show it
-                            //console.log(target.Event);
-                            if (target.Event != "") {
-                                wm.Level.ShowDialog(target.Event, target);
-                            }
-                        } else {
-                            if (target.Passable)
-                                player.Cell = target;
-                        }
-                    } else {
-                        target.MinedOut = true;
-                        player.Energy -= 10;
-                        new WM.UI.TextSpark("-10 energy", player.View.x, player.View.y);
-                    }
-                }
-            };
-
-            //add the exit and make the cell an exit
-            Room.prototype.AddExit = function (exit) {
-                this.Exits.push(exit);
-                var cell = this.GetExitCell(exit.ExitType);
-                cell.Exit = exit;
-                cell.Passable = true;
-            };
-
-            //find the cell based on the type of exit
-            Room.prototype.GetExitCell = function (exittype) {
-                var hw = Math.floor(this.Width / 2);
-                var hh = Math.floor(this.Height / 2);
-                switch (exittype) {
-                    case "left":
-                        return this.Cells[hh][0];
-                    case "bottom":
-                        return this.Cells[this.Height - 1][hw];
-                    case "right":
-                        return this.Cells[hh][this.Width - 1];
-                    case "top":
-                        return this.Cells[0][hw];
-                    default:
-                        return this.Cells[hh][hw];
-                }
-            };
-            return Room;
-        })(WM.Util.Grid);
-        Level.Room = Room;
-
-        //class for the exits, with the target and the type
-        var RoomExit = (function () {
-            function RoomExit(target, type) {
-                this.TargetRoom = target;
-                this.ExitType = type;
-            }
-            //find the cell where the player comes out when using the exit
-            RoomExit.prototype.EntranceCell = function () {
-                var entrance = "";
-                switch (this.ExitType) {
-                    case "top":
-                        entrance = "bottom";
-                        break;
-                    case "bottom":
-                        entrance = "top";
-                        break;
-                    case "left":
-                        entrance = "right";
-                        break;
-                    case "right":
-                        entrance = "left";
-                        break;
-                    default:
-                        entrance = "middle";
-                        break;
-                }
-                return this.TargetRoom.GetExitCell(entrance);
-            };
-            return RoomExit;
-        })();
-        Level.RoomExit = RoomExit;
-    })(WM.Level || (WM.Level = {}));
-    var Level = WM.Level;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    /// <reference path="../_reference.ts" />
-    (function (Level) {
-        var LvlData = (function (_super) {
-            __extends(LvlData, _super);
-            function LvlData(width, height) {
-                _super.call(this, width, height);
-
-                for (var i = 0; i < this.Height; i++) {
-                    this.Cells[i] = new Array();
-                    for (var j = 0; j < this.Width; j++) {
-                        this.Cells[i][j] = new WM.Level.Room(WM.G.RoomWidth, WM.G.RoomHeight, i, j);
-                    }
-                }
-
-                //apply the exits in the rooms
-                this.SetExits();
-            }
-            LvlData.prototype.SetExits = function () {
-                for (var i = 0; i < this.Height; i++) {
-                    for (var j = 0; j < this.Width; j++) {
-                        var here = this.Cells[i][j];
-
-                        //get the surrounding cells
-                        var above = (this.Inside(i, j - 1)) ? this.Cells[i][j - 1] : null;
-                        var below = (this.Inside(i, j + 1)) ? this.Cells[i][j + 1] : null;
-                        var left = (this.Inside(i - 1, j)) ? this.Cells[i - 1][j] : null;
-                        var right = (this.Inside(i + 1, j)) ? this.Cells[i + 1][j] : null;
-
-                        //add an exit to them if necessary
-                        if (above != null) {
-                            this.Cells[i][j].AddExit(new WM.Level.RoomExit(above, "top"));
-                        }
-                        if (below != null) {
-                            this.Cells[i][j].AddExit(new WM.Level.RoomExit(below, "bottom"));
-                        }
-                        if (left != null) {
-                            this.Cells[i][j].AddExit(new WM.Level.RoomExit(left, "left"));
-                        }
-                        if (right != null) {
-                            this.Cells[i][j].AddExit(new WM.Level.RoomExit(right, "right"));
-                        }
-                    }
-                }
-            };
-            return LvlData;
-        })(WM.Util.Grid);
-        Level.LvlData = LvlData;
-    })(WM.Level || (WM.Level = {}));
-    var Level = WM.Level;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (UI) {
-        var FilledRect = (function (_super) {
-            __extends(FilledRect, _super);
-            function FilledRect(game, width, height, color) {
-                if (typeof color === "undefined") { color = "#fff"; }
-                _super.call(this, game, width, height, FilledRect.getBMD(game, width, height, color));
-                this.color = color;
-
-                //this.loadTexture(, null);
-                this.visible = true;
-                this.exists = true;
-                //this.
-            }
-            FilledRect.getBMD = function (game, width, height, color) {
-                if (typeof color === "undefined") { color = "#fff"; }
-                var bmd = new Phaser.BitmapData(game, "", width, height);
-                bmd.ctx.beginPath();
-                bmd.ctx.rect(0, 0, width, height);
-                bmd.ctx.fillStyle = color;
-                bmd.ctx.fill();
-                return bmd;
-            };
-            return FilledRect;
-        })(Phaser.Sprite);
-        UI.FilledRect = FilledRect;
-    })(WM.UI || (WM.UI = {}));
-    var UI = WM.UI;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (UI) {
-        var ProgressBar = (function (_super) {
-            __extends(ProgressBar, _super);
-            function ProgressBar(game, width, height) {
-                if (typeof width === "undefined") { width = 100; }
-                if (typeof height === "undefined") { height = 50; }
-                _super.call(this, game, null, "progressbar");
-                this._filled = 0;
-                this.padding = 5;
-                this.dpadding = this.padding * 2;
-                this.background = this.add(new WM.UI.FilledRect(game, width, height));
-                this.bar = this.add(new WM.UI.FilledRect(game, width - this.dpadding, height - this.dpadding, "#000"));
-                this.bar.x += this.padding * 3;
-                this.bar.y += this.padding * 3;
-                this.width = width;
-                this.height = height;
-            }
-            Object.defineProperty(ProgressBar.prototype, "FilledAmount", {
-                get: function () {
-                    return this._filled;
-                },
-                set: function (percent) {
-                    this._filled = percent;
-                    this.SetAmount(percent);
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-            ProgressBar.prototype.SetAmount = function (percent) {
-                if (percent >= 0 && percent <= 1) {
-                    var w = (this.background.width - this.dpadding) * percent;
-                    this.bar.width = w;
-                }
-            };
-            return ProgressBar;
-        })(Phaser.Group);
-        UI.ProgressBar = ProgressBar;
-    })(WM.UI || (WM.UI = {}));
-    var UI = WM.UI;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (UI) {
-        var TextButton = (function (_super) {
-            __extends(TextButton, _super);
-            function TextButton(game, text, width, height, callback, context, color) {
-                if (typeof width === "undefined") { width = 100; }
-                if (typeof height === "undefined") { height = 50; }
-                if (typeof color === "undefined") { color = "#eee"; }
-                _super.call(this, game, null, "button");
-                this.callback = callback;
-                this.w = width;
-                this.h = height;
-                this.button = this.add(new Phaser.Button(this.game, 0, 0, "", callback, context));
-                this.button.loadTexture(WM.UI.FilledRect.getBMD(this.game, this.w, this.h, color), 0);
-                this.text = this.add(new Phaser.Text(this.game, 0, 0, text, WM.G.style));
-                this.text.anchor.set(0.5, 0.5);
-                this.text.x = this.button.width / 2;
-                this.text.y = this.button.height / 2;
-                this.Hide();
-            }
-            TextButton.prototype.Hide = function () {
-                this.exists = this.visible = false;
-            };
-            TextButton.prototype.Show = function () {
-                this.exists = this.visible = true;
-            };
-            return TextButton;
-        })(Phaser.Group);
-        UI.TextButton = TextButton;
-    })(WM.UI || (WM.UI = {}));
-    var UI = WM.UI;
-})(WM || (WM = {}));
-/// <reference path="../_reference.ts" />
-var WM;
-(function (WM) {
-    (function (_Letter) {
-        var Letter = (function (_super) {
-            __extends(Letter, _super);
-            function Letter(game, text, callback) {
-                _super.call(this, game, text, 100, 100, callback);
-                this.name = "letter";
-            }
-            return Letter;
-        })(WM.UI.TextButton);
-        _Letter.Letter = Letter;
-    })(WM.Letter || (WM.Letter = {}));
-    var Letter = WM.Letter;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (_Player) {
-        var Player = (function () {
-            function Player() {
-                this.Health = 100;
-                this.Energy = 250;
-            }
-            Object.defineProperty(Player.prototype, "Cell", {
-                get: function () {
-                    return this._Cell;
-                },
-                set: function (h) {
-                    this._Cell = h;
-                    this.View.y = h.RoomX * WM.G.CellSize;
-                    this.View.x = h.RoomY * WM.G.CellSize;
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-            Object.defineProperty(Player.prototype, "Health", {
-                get: function () {
-                    return this._health;
-                },
-                set: function (h) {
-                    this._health = h;
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-            Player.prototype.Has = function (item) {
-                return true;
-            };
-            Player.prototype.AddItem = function (item) {
-            };
-            Player.prototype.LoseItem = function (item) {
-            };
-            Player.prototype.Move = function (dir) {
-                //handle moving
-            };
-            return Player;
-        })();
-        _Player.Player = Player;
-    })(WM.Player || (WM.Player = {}));
-    var Player = WM.Player;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (Dialog) {
-        var EventPanel = (function (_super) {
-            __extends(EventPanel, _super);
-            function EventPanel(game, panel) {
-                _super.call(this, game, null, "panel", false);
-                this.padding = 10;
-                this.background = this.add(new Phaser.Image(game, 0, 0, WM.UI.FilledRect.getBMD(game, WM.G.MapWidth, WM.G.MapHeight, "#eee"), null));
-                this.options = new Array();
-                for (var j = 0; j < panel.options.length; j++) {
-                    var option = panel.options[j];
-                    if (WM.Dialog.Effect.Happens(option.conditions)) {
-                        var effects = function () {
-                            for (var i = 0; i < option.effects.length; i++) {
-                                WM.Dialog.Effect.Call(option.effects[i])();
-                            }
-                        };
-                        var eopt = new WM.Dialog.EventOption(game, option.text, WM.G.MapWidth, 70, effects);
-                        this.add(eopt);
-                        eopt.y += 200 + ((this.options.length - 1) * eopt.h);
-                        this.options.push(eopt);
-                    }
-                }
-                this.image = panel.img;
-                this.text = this.add(new Phaser.Text(game, this.padding, this.padding, panel.text, WM.G.style));
-                this.SelectedOption = 0;
-                this.Hide();
-            }
-            EventPanel.prototype.HandleInput = function (dir) {
-                this.options[this.SelectedOption].button.tint = 0xeeeeee;
-                if (dir == "down") {
-                    this.SelectedOption++;
-                    this.SelectedOption = (this.SelectedOption > this.options.length - 1) ? 0 : this.SelectedOption;
-                } else if (dir == "up") {
-                    this.SelectedOption--;
-                    this.SelectedOption = (this.SelectedOption < 0) ? this.options.length - 1 : this.SelectedOption;
-                } else
-                    this.options[this.SelectedOption].callback();
-                this.options[this.SelectedOption].button.tint = 0xaaaaee;
-            };
-            EventPanel.prototype.Show = function () {
-                for (var i = 0; i < this.options.length; i++) {
-                    this.options[i].Show();
-                }
-                this.text.exists = this.text.visible = true;
-                this.background.exists = this.background.visible = true;
-                this.visible = this.exists = true;
-            };
-            EventPanel.prototype.Hide = function () {
-                for (var i = 0; i < this.options.length; i++) {
-                    this.options[i].Hide();
-                }
-                this.text.exists = this.text.visible = false;
-                this.background.exists = this.background.visible = false;
-                this.visible = this.exists = false;
-            };
-            return EventPanel;
-        })(Phaser.Group);
-        Dialog.EventPanel = EventPanel;
-    })(WM.Dialog || (WM.Dialog = {}));
-    var Dialog = WM.Dialog;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    /// <reference path="../_reference.ts" />
-    (function (Dialog) {
-        var EventOption = (function (_super) {
-            __extends(EventOption, _super);
-            function EventOption(game, text, width, height, callback, context) {
-                _super.call(this, game, text, width, height, callback, context, "#ddf");
-            }
-            return EventOption;
-        })(WM.UI.TextButton);
-        Dialog.EventOption = EventOption;
-    })(WM.Dialog || (WM.Dialog = {}));
-    var Dialog = WM.Dialog;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (Dialog) {
-        var Event = (function () {
-            function Event(game, eventdata, cell) {
-                this.Cell = cell;
-                this.Panels = new Array();
-                this.CurrentPanel = null;
-                for (var i = 0; i < eventdata.panels.length; i++) {
-                    this.Panels.push(game.add.existing(new WM.Dialog.EventPanel(game, eventdata.panels[i])));
-                }
-            }
-            Event.prototype.ShowPanel = function (nr) {
-                if (typeof nr === "undefined") { nr = 0; }
-                console.log("nr", nr, this);
-                if (this.CurrentPanel == null) {
-                    console.log("--first");
-                    this.CurrentPanel = this.Panels[nr];
-                    this.CurrentPanel.Show();
-                } else if (nr == -1) {
-                    console.log("--gone");
-                    this.CurrentPanel.Hide();
-                    this.Cell.Event = "";
-                    wm.Level.Dialog = null;
-                    wm.Level.DrawRoom();
-                } else if (nr == -2) {
-                    console.log("--stay");
-                    this.CurrentPanel.Hide();
-                    wm.Level.Dialog = null;
-                    wm.Level.DrawRoom();
-                } else {
-                    console.log("--next");
-                    this.CurrentPanel.Hide(); //close panel and show next
-                    this.CurrentPanel = this.Panels[nr];
-                    this.CurrentPanel.Show();
-                }
-            };
-            return Event;
-        })();
-        Dialog.Event = Event;
-    })(WM.Dialog || (WM.Dialog = {}));
-    var Dialog = WM.Dialog;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (Dialog) {
-        var Effect = (function () {
-            function Effect() {
-            }
-            Effect.Happens = function (strs) {
-                for (var i = 0; i < strs.length; i++) {
-                    var result = false;
-                    var elems = strs[i].split(' ');
-                    if (elems[0] == "has") {
-                        result = wm.Player.Has(elems[1]);
-                    } else {
-                        elems[0] = elems[0].substr(1, elems[0].length - 1); //remove star
-                        var call = elems[0].split('.');
-                        var mod = elems[1];
-                        var am = elems[2];
-                        var target = wm[call[0]][call[1]];
-                        switch (mod) {
-                            case "true":
-                                result = target == true;
-                                break;
-                            case "false":
-                                result = target == false;
-                                break;
-                            case "=":
-                                result = am == target;
-                                break;
-                            case ">":
-                                result = am < target;
-                                break;
-                            case "<":
-                                result = am > target;
-                                break;
-                        }
-                    }
-                    if (!result)
-                        return false;
-                }
-                return true;
-            };
-            Effect.Call = function (str) {
-                var f;
-                if (!isNaN(parseFloat(str))) {
-                    f = function () {
-                        wm.Level.Dialog.ShowPanel(+str);
-                    };
-                } else {
-                    var elems = str.split(' ');
-                    var call = elems[0];
-                    switch (call) {
-                        case "add":
-                            f = function () {
-                                wm.Player.AddItem(elems[1]);
-                            };
-                            break;
-                        case "lose":
-                            f = function () {
-                                wm.Player.LoseItem(elems[1]);
-                            };
-                            break;
-                    }
-
-                    var mod = elems[1];
-                    var am = elems[2];
-                    if (call.indexOf("*") < 0) {
-                        //special function
-                        f = function () {
-                            wm[call](am);
-                        };
-                    } else {
-                        //
-                        call = call.replace("*", "");
-                        var elems = call.split('.');
-                        var context = wm[elems[0]];
-                        f = function () {
-                            switch (mod) {
-                                case "+":
-                                    context[elems[1]] += +am;
-                                    break;
-                                case "-":
-                                    context[elems[1]] -= +am;
-                                    break;
-                                case "*":
-                                    context[elems[1]] *= +am;
-                                    break;
-                                case "/":
-                                    context[elems[1]] /= +am;
-                                    break;
-                                case "=":
-                                    context[elems[1]] = +am;
-                                    break;
-                            }
-                        };
-                    }
-                }
-                return f;
-            };
-            return Effect;
-        })();
-        Dialog.Effect = Effect;
-    })(WM.Dialog || (WM.Dialog = {}));
-    var Dialog = WM.Dialog;
-})(WM || (WM = {}));
+var wm;
+window.onload = function () {
+    wm = new WM.Main();
+};
+/// <reference path="util/grid.ts" />
+/// <reference path="level/cell.ts" />
+/// <reference path="level/room.ts" />
+/// <reference path="level/lvldata.ts" />
+/// <reference path="dialog/event.ts" />
+/// <reference path="dialog/effect.ts" />
+/// <reference path="ui/filledrect.ts" />
+/// <reference path="ui/progressbar.ts" />
+/// <reference path="ui/textbutton.ts" />
+/// <reference path="ui/popup.ts" />
+/// <reference path="ui/dialogpanel.ts" />
+/// <reference path="ui/dialogoption.ts" />
+/// <reference path="letter/letter.ts" />
+/// <reference path="player/player.ts" />
+/// <reference path="letter/letter.ts" />
 /// <reference path="states/boot.ts" />
 /// <reference path="states/combat.ts" />
 /// <reference path="states/level.ts" />
 /// <reference path="states/menu.ts" />
 /// <reference path="states/preload.ts" />
-/// <reference path="util/grid.ts" />
-/// <reference path="level/cell.ts" />
-/// <reference path="level/room.ts" />
-/// <reference path="level/lvldata.ts" />
-/// <reference path="ui/filledrect.ts" />
-/// <reference path="ui/progressbar.ts" />
-/// <reference path="ui/textbutton.ts" />
-/// <reference path="letter/letter.ts" />
-/// <reference path="player/player.ts" />
-/// <reference path="letter/letter.ts" />
-/// <reference path="dialog/eventpanel.ts" />
-/// <reference path="dialog/eventoption.ts" />
-/// <reference path="dialog/event.ts" />
-/// <reference path="dialog/effect.ts" />
+/// <reference path="game.ts" />
+/**/
 var WM;
 (function (WM) {
     (function (_Combat) {
@@ -1223,29 +1269,6 @@ var WM;
     })();
     WM.G = G;
 })(WM || (WM = {}));
-/*/// <reference path="_reference.ts"/>*/
-var WM;
-(function (WM) {
-    var Main = (function (_super) {
-        __extends(Main, _super);
-        function Main() {
-            _super.call(this, WM.G.GameWidth, WM.G.GameHeight, Phaser.CANVAS, "wordmine");
-            this.Player = new WM.Player.Player();
-            this.state.add("boot", WM.States.Boot);
-            this.state.add("preload", WM.States.Preload);
-            this.state.add("menu", WM.States.Menu);
-            this.state.add("level", WM.States.Level);
-            this.state.add("combat", WM.States.Combat);
-            this.state.start("boot");
-        }
-        return Main;
-    })(Phaser.Game);
-    WM.Main = Main;
-})(WM || (WM = {}));
-var wm;
-window.onload = function () {
-    wm = new WM.Main();
-};
 var WM;
 (function (WM) {
     (function (Level) {
@@ -1356,6 +1379,8 @@ var WM;
                     if (quadrant == 2 || quadrant == 3) {
                         this.SectionsFilled[2] = this.SectionsFilled[3] = true;
                         section.Flip("vertical");
+                        if (Math.random() > 0.5)
+                            section.Flip("horizontal");
                         posX = newX;
                     } else {
                         this.SectionsFilled[0] = this.SectionsFilled[1] = true;
@@ -1365,6 +1390,8 @@ var WM;
                     if (quadrant == 1 || quadrant == 3) {
                         this.SectionsFilled[1] = this.SectionsFilled[3] = true;
                         section.Flip("horizontal");
+                        if (Math.random() > 0.5)
+                            section.Flip("vertical");
                         posY = newY;
                     } else {
                         this.SectionsFilled[0] = this.SectionsFilled[2] = true;
@@ -1374,7 +1401,7 @@ var WM;
                 for (var i = posX; i < posX + section.Grid.length; i++) {
                     for (var j = posY; j < posY + section.Grid[0].length; j++) {
                         if (this.Room.Inside(i, j)) {
-                            this.Room.Cells[i][j] = new WM.Level.Cell(i, j, section.Grid[i - posX][j - posY]);
+                            this.Room.Cells[i][j] = new Level.Cell(i, j, section.Grid[i - posX][j - posY]);
                         }
                     }
                 }

@@ -9,7 +9,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <TypeScriptToolsVersion>0.9</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>1.0</TypeScriptToolsVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
@@ -38,8 +38,8 @@
     <TypeScriptCompile Include="WordMine\Creep\Creep.ts" />
     <TypeScriptCompile Include="WordMine\Dialog\Effect.ts" />
     <TypeScriptCompile Include="WordMine\Dialog\Event.ts" />
-    <TypeScriptCompile Include="WordMine\Dialog\EventOption.ts" />
-    <TypeScriptCompile Include="WordMine\Dialog\EventPanel.ts" />
+    <TypeScriptCompile Include="WordMine\UI\DialogOption.ts" />
+    <TypeScriptCompile Include="WordMine\UI\DialogPanel.ts" />
     <TypeScriptCompile Include="WordMine\G.ts" />
     <TypeScriptCompile Include="WordMine\Game.ts" />
     <TypeScriptCompile Include="WordMine\Letter\Letter.ts" />
@@ -57,6 +57,7 @@
     <TypeScriptCompile Include="WordMine\Treasure\Item.ts" />
     <TypeScriptCompile Include="WordMine\Treasure\Treasure.ts" />
     <TypeScriptCompile Include="WordMine\UI\FilledRect.ts" />
+    <TypeScriptCompile Include="WordMine\UI\Popup.ts" />
     <TypeScriptCompile Include="WordMine\UI\ProgressBar.ts" />
     <TypeScriptCompile Include="WordMine\UI\TextButton.ts" />
     <TypeScriptCompile Include="WordMine\UI\TextSpark.ts" />

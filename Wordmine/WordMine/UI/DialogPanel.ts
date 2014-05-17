@@ -1,26 +1,26 @@
-module WM.Dialog {
-    export class EventPanel extends Phaser.Group {
+/// <reference path="../_reference.ts" />
+module WM.UI {
+    export class DialogPanel extends Popup {
         //text: Phaser.Text;
-        background: Phaser.Sprite;
+        //background: Phaser.Sprite;
         text: Phaser.Text;
         image: string;//to be made
-        options: Array<EventOption>;
+        options: Array<DialogOption>;
         padding: number;
         SelectedOption: number;
         constructor(game: Phaser.Game, panel:any) {
-            super(game, null, "panel", false);
-            this.padding = 10;
-            this.background = this.add(new Phaser.Image(game, 0, 0, UI.FilledRect.getBMD(game, G.MapWidth, G.MapHeight, "#eee"),null));
-            this.options = new Array<EventOption>();            
+            super(game, 0,0, G.MapWidth, G.MapHeight);
+            this.padding = 10;           
+            this.options = new Array<DialogOption>();            
             for (var j = 0; j < panel.options.length; j++) {
                 var option = panel.options[j];
-                if (Effect.Happens(option.conditions)) {
+                if (Dialog.Effect.Happens(option.conditions)) {
                     var effects = function () {
                         for (var i = 0; i < option.effects.length; i++) {
-                            Effect.Call(option.effects[i])();
+                            Dialog.Effect.Call(option.effects[i])();
                         }
                     }
-                    var eopt = new EventOption(game, option.text, G.MapWidth, 70, effects);                 
+                    var eopt = new DialogOption(game, option.text, G.MapWidth, 70, effects);                 
                     this.add(eopt);
                     eopt.y += 200 + ((this.options.length - 1) * eopt.h);
                     this.options.push(eopt);
@@ -52,7 +52,7 @@ module WM.Dialog {
                 this.options[i].Show();
             }
             this.text.exists=this.text.visible = true;
-            this.background.exists =this.background.visible= true;
+            this.Background.exists = this.Background.visible= true;
             this.visible = this.exists = true;           
         }
         Hide() {            
@@ -60,7 +60,7 @@ module WM.Dialog {
                 this.options[i].Hide();
             }
             this.text.exists = this.text.visible = false;
-            this.background.exists = this.background.visible = false;
+            this.Background.exists = this.Background.visible = false;
             this.visible = this.exists = false;            
         }
     }

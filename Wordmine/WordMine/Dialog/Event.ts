@@ -1,14 +1,15 @@
+/// <reference path="../_reference.ts" />
 module WM.Dialog {
     export class Event {
-        Panels: Array<EventPanel>;
-        CurrentPanel: EventPanel;
+        Panels: Array<UI.DialogPanel>;
+        CurrentPanel: UI.DialogPanel;
         Cell: Level.Cell;
         constructor(game: Phaser.Game, eventdata: any, cell: Level.Cell) {
             this.Cell = cell;
-            this.Panels = new Array<EventPanel>();
+            this.Panels = new Array<UI.DialogPanel>();
             this.CurrentPanel = null;
             for (var i = 0; i < eventdata.panels.length; i++) {
-                this.Panels.push(game.add.existing(new EventPanel(game, eventdata.panels[i])));
+                this.Panels.push(game.add.existing(new UI.DialogPanel(game, eventdata.panels[i])));
             }
         }
 
