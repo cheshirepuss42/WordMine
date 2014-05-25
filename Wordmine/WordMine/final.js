@@ -841,8 +841,7 @@ var WM;
                 this.UnminedLayer = this.Map.createBlankLayer("unmined", WM.G.RoomWidth, WM.G.RoomHeight, WM.G.CellSize, WM.G.CellSize);
 
                 //show a little of what is under the unminedlayer for debugging
-                this.UnminedLayer.alpha = 0.50;
-
+                //this.UnminedLayer.alpha = 0.50;
                 //make the player, his view and his position
                 this.Player = wm.Player;
                 this.Player.View = this.add.sprite(0, 0, "player");
@@ -1125,8 +1124,8 @@ var WM;
         G.GameHeight = 672;
         G.RoomWidth = 15;
         G.RoomHeight = 11;
-        G.LevelWidth = 3;
-        G.LevelHeight = 3;
+        G.LevelWidth = 5;
+        G.LevelHeight = 5;
 
         G.style = { font: "16px Arial" };
 

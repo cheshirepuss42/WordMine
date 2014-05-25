@@ -11,5 +11,22 @@
 <body>
 
     <div id="wordmine"></div>
+   <div id="debug">
+       <input type="radio" name="toggleMined" onclick="changeMinedview('on')"/>
+       <span>show unmined</span>
+       <input type="radio" name="toggleMined" selected="selected" onclick="changeMinedview('off')"/>
+       <span>regular</span>
+   </div>
+    <script>
+        function changeMinedview(type) {
+            if (type == "on")
+                wm.Level.UnminedLayer.alpha = 0.50;
+            else {
+                wm.Level.UnminedLayer.alpha = 1;
+            }
+
+            wm.Level.DrawRoom();
+        }
+    </script>
 </body>
 </html>

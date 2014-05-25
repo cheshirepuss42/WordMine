@@ -5,8 +5,8 @@ module WM {
         static GameHeight: number = 672;
         static RoomWidth: number = 15;
         static RoomHeight: number = 11;
-        static LevelWidth: number = 3;
-        static LevelHeight: number = 3;
+        static LevelWidth: number = 5;
+        static LevelHeight: number = 5;
         static get MapWidth(): number { return this.CellSize * this.RoomWidth; }
         static get MapHeight(): number { return this.CellSize * this.RoomHeight; }
         static style: any = { font: "16px Arial" };
