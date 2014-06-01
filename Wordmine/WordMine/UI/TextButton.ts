@@ -4,10 +4,10 @@ module WM.UI {
         h: number;
         button: Phaser.Button;
         text: Phaser.Text;
-        callback: Function;
+        onClick: Function;
         constructor(game: Phaser.Game, text: string, width: number= 100, height: number= 50, callback?: Function,context?:Object,color:string="#eee") {
             super(game, null, "button");
-            this.callback = callback;
+            this.onClick = callback;
             this.w = width;
             this.h = height;        
             this.button = this.add(new Phaser.Button(this.game, 0, 0, "", callback,context));

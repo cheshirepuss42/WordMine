@@ -1,5 +1,5 @@
 module WM.Level {
-    export class Room extends Util.Grid<Cell>{
+    export class Room extends Grid<Cell>{
         Selected: Cell;
         Target: Cell;
         PosX: number;
@@ -24,44 +24,30 @@ module WM.Level {
             }
             //applying random roomsections as defined in g.roomsections, needs 1x2 and 2x1 sections
             //keep track of which sections are filled
-            console.log("new room");
             var handler = new RoomSectionsHandler(this);
             handler.FillRoom();
-            
-
         }
 
-
         //can the player reach the minedout cell
-        CellReachable(player: Player.Player, x: number, y: number):boolean {
+        CellReachable(player: Level.Player, x: number, y: number):boolean {
             var px = player.Cell.RoomX;
             var py = player.Cell.RoomY;
             return this.Cells[x][y].MinedOut || (px + 1 == x && py == y) || (px - 1 == x && py == y) || (px  == x && py+ 1 == y) || (px  == x && py- 1 == y);
         }
         //handle interaction between player and tile
-        MoveToTile(player: Player.Player, x: number, y: number) {
+        MoveToTile(player: Level.Player, x: number, y: number) {
             //is it in the map?
             if (this.Inside(y, x)) {
                 var target = this.Cells[y][x];
+                wm.Level.TargetCell = target;
                 //is cell minedout?
                 if (target.MinedOut) {
                     //if there is some type of event
-                    if (target.HasEvent()) {
-                        //if there is an exit, handle it
-                        if (target.Exit != null)
-                            wm.Level.HandleExit(target.Exit);
-                        //if there is treasure, pick it up
-                        if (target.Treasure != null) {
-                            target.Treasure.Handle(player);
-                            player.Cell = target;
-                            new UI.TextSpark("+" + target.Treasure.Resources + " energy", player.View.x, player.View.y);
-                            target.Treasure = null;                            
-                        }
-                        //if there is a dialog, show it
-                        //console.log(target.Event);
-                        if (target.Event != "") {
-                            wm.Level.ShowDialog(target.Event,target);
-                        }
+                    if (target.Event != null) {                        
+                        target.Event.Handle();
+                    }
+                    else if (target.Exit != null) {
+                        wm.Level.HandleExit(target.Exit);
                     }
                     //move player to cell
                     else {

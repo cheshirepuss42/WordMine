@@ -1,4 +1,4 @@
-module WM.Player {
+module WM.Level {
     export class Player {
         View: Phaser.Sprite;
         private _Cell: Level.Cell;

@@ -4,12 +4,9 @@ module WM.Level {
         TypeChar: string;
         Passable: boolean;
         MinedOut: boolean;
-        Event: string;
-        Creep: Creep.Creep;
-        Treasure: Treasure.Treasure;   
+        Event: Event.RoomEvent; 
         RoomX: number;
         RoomY: number; 
-        TileIndex: number;
         Exit: RoomExit;
 
         constructor(roomx: number, roomy: number, typechar: any) {
@@ -18,16 +15,9 @@ module WM.Level {
             this.TypeChar = typechar;
             this.Passable = true; 
             this.MinedOut = false;
-            this.Event = "";
-            this.Creep = null;
-            this.Treasure = null;
+            this.Event = null;
             this.Exit = null;
-            //make setting based on typechar (used for easy mapmaking)
-            switch (this.TypeChar) {
-                case "X": this.Passable = false; break;
-                case "t": this.Treasure = new Treasure.Treasure(1); break;
-                case "e": this.Event = "first";
-            }
+
         }
         //see if the url indicates whether to show the unminedlayer
         UnminedByQuery(): boolean {
@@ -37,7 +27,7 @@ module WM.Level {
         }
         //has a some property which causes an event
         HasEvent(): boolean {
-            return this.Event != "" ||this.Creep != null ||this.Treasure != null ||this.Exit != null;
+            return this.Event != null || this.Exit != null;
         }
         //get the tilesheetindex for the given layer
         GetTileIndex(layername: string): number {
@@ -45,13 +35,46 @@ module WM.Level {
             switch (layername) {
                 case "floor": index = 39; break;
                 case "walls": index = (this.Passable) ? index : 91;break;
-                case "events": if (this.Event != "") { index = 25; } else if (this.Treasure != null) { index = 9; } break;
+                case "events":
+                    if (this.Event != null) {
+                        if (this.Event.Type == "dialog")
+                            index = 25;
+                        if (this.Event.Type == "treasure")
+                            index = 9;
+                        break;
+                    }
                 case "unmined": index = (this.MinedOut) ? index : 37; break;
             }
             return index;
         }
         toString():string {
             return this.TypeChar;
+        }
+    }
+
+    export class CellBuilder {
+        tileCharGroups: any = { empty: ".", creep: "cC", wall: "xX", treasure: "tT", dialog: "dD" };
+        constructor() {
+        }
+        Build(xpos: number, ypos: number, tileChar: string): Level.Cell {
+            //generate the randomized cell for the tilechar
+            var cell = new Level.Cell(xpos, ypos, tileChar);
+            var group = this.groupName(tileChar);
+            switch (tileChar) {
+                case "X": cell.Passable = false; break;
+                case "t": cell.Event = new Event.Treasure(1); break;
+                case "e": cell.Event = new Event.Dialog("first"); break;
+            }
+
+            return cell;
+        }
+        groupName(char): string {
+            for (var k in this.tileCharGroups) {
+                if (this.tileCharGroups[k].indexOf(char) != -1) {
+                    return k;
+                }
+            }
+            return "empty";
         }
     }
 } 

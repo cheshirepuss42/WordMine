@@ -1,4 +1,4 @@
-module WM.Util {
+module WM.Level {
     export class Grid<T> {
         constructor(w: number, h: number) {
             this.Width = w;

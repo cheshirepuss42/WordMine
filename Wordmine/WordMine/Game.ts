@@ -1,11 +1,11 @@
 /*/// <reference path="_reference.ts"/>*/
 module WM {
     export class Main extends Phaser.Game {
-        Player: Player.Player;
+        Player: Level.Player;
         Level: States.Level;
         constructor() {            
             super(G.GameWidth, G.GameHeight, Phaser.CANVAS, "wordmine");
-            this.Player = new Player.Player();
+            this.Player = new Level.Player();
             this.state.add("boot", States.Boot);
             this.state.add("preload", States.Preload);
             this.state.add("menu", States.Menu);

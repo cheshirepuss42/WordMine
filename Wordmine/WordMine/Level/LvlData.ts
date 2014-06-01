@@ -1,6 +1,6 @@
 /// <reference path="../_reference.ts" />
 module WM.Level {
-    export class LvlData extends Util.Grid<Room> {
+    export class LvlData extends Grid<Room> {
         constructor( width: number, height: number) {
             super(width, height);
             //make all the rooms in the level (now just fills all, should be more cavelike)

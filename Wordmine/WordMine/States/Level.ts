@@ -1,10 +1,12 @@
 /// <reference path="../_reference.ts" />
 module WM.States {
     export class Level extends Phaser.State {
-        Dialog: Dialog.Event;
+        Popup: UI.Popup;
+        Event: Event.RoomEvent;
+        TargetCell: Level.Cell;
         Lvl: Level.LvlData;
         Room: Level.Room;
-        Player: Player.Player;
+        Player: Level.Player;
         UnminedLayer: Phaser.TilemapLayer;
         FloorLayer: Phaser.TilemapLayer;
         WallsLayer: Phaser.TilemapLayer;
@@ -45,7 +47,7 @@ module WM.States {
             this.UnminedLayer = this.Map.createBlankLayer("unmined", G.RoomWidth, G.RoomHeight, G.CellSize, G.CellSize);
 
             //show a little of what is under the unminedlayer for debugging
-            //this.UnminedLayer.alpha = 0.50;
+            this.UnminedLayer.alpha = 0.50;
 
             //make the player, his view and his position
             this.Player = wm.Player;
@@ -97,18 +99,17 @@ module WM.States {
 
         //handles a click on a tile, only if there is no dialog running
         ClickTile(obj, pointer) {
-            if (this.Dialog == null) {
+            if (this.Popup == null) {
                 var px = Math.floor((pointer.layerX / G.CellSize) /this.world.scale.x);
                 var py = Math.floor((pointer.layerY / G.CellSize) / this.world.scale.y);
                 if (this.Room.Inside(py, px)) {
-                    console.log(this.Room.Cells[py][px], px, py);
                     this.Marker.position.set(px * G.CellSize, py * G.CellSize);
                 }
             }
         }
         //handles player interaction with tile in given direction. likely moves the player there too. updates the view of the entered cell
         HandleInput(dir: string) {
-            if (this.Dialog == null) {
+            if (this.Popup == null) {
                 var target = this.Room.GetNeighbour(dir, this.Player.Cell.RoomX, this.Player.Cell.RoomY);
                 if (target != null) {
                     this.Room.MoveToTile(this.Player, target.RoomY, target.RoomX);
@@ -120,13 +121,8 @@ module WM.States {
                 this.PlayerStats.setText("Energy: " + this.Player.Energy);
             }
             else {
-                this.Dialog.CurrentPanel.HandleInput(dir);                
+                this.Popup.HandleInput(dir);                
             }
-        }
-        //show the dialog of the given event
-        ShowDialog(event: string, cell: Level.Cell) {
-            this.Dialog = new Dialog.Event(this.game, G.events[event],cell);
-            this.Dialog.ShowPanel();
         }
         //moves player to entrance in new room corresponding to exit 
         HandleExit(exit: Level.RoomExit) {

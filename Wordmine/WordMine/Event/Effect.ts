@@ -1,4 +1,5 @@
-module WM.Dialog {
+/// <reference path="../_reference.ts" />
+module WM.Event {
     export class Effect {
         static Happens(strs: Array<string>): boolean {
             
@@ -30,7 +31,7 @@ module WM.Dialog {
         static Call(str:string): Function {
             var f: Function;
             if (!isNaN(parseFloat(str))) {
-                f = function () { wm.Level.Dialog.ShowPanel(+str); }//activate next panel
+                f = function () { var event = <Event.Dialog>wm.Level.TargetCell.Event; event.ShowPanel(+str); }//activate next panel
             }
             else {
                 var elems = str.split(' ');

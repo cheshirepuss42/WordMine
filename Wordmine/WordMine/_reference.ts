@@ -1,12 +1,15 @@
 
-/// <reference path="util/grid.ts" />
+/// <reference path="level/grid.ts" />
 /// <reference path="level/cell.ts" />
 /// <reference path="level/room.ts" />
 /// <reference path="level/lvldata.ts" />
+/// <reference path="level/player.ts" />
 
-
-/// <reference path="dialog/event.ts" />
-/// <reference path="dialog/effect.ts" />
+/// <reference path="event/event.ts" />
+/// <reference path="event/dialog.ts" />
+/// <reference path="event/creep.ts" />
+/// <reference path="event/treasure.ts" />
+/// <reference path="event/effect.ts" />
 
 /// <reference path="ui/filledrect.ts" />
 /// <reference path="ui/progressbar.ts" />
@@ -14,10 +17,9 @@
 /// <reference path="ui/popup.ts" />
 /// <reference path="ui/dialogpanel.ts" />
 /// <reference path="ui/dialogoption.ts" />
+/// <reference path="ui/letter.ts" />
 
-/// <reference path="letter/letter.ts" />
-/// <reference path="player/player.ts" />
-/// <reference path="letter/letter.ts" />
+
 
 /// <reference path="states/boot.ts" />
 /// <reference path="states/combat.ts" />

@@ -3,7 +3,6 @@
         Sections: Array<RoomSection>;
         Room: Room;
         SectionsFilled: Array<boolean>;
-        Locations = [[[0, 1], [0, 2]], [[0, 1], [1, 3]], [[2, 3], [0, 2]], [[2, 3], [1, 3]]];
 
         constructor(room: Room) {
             this.SectionsFilled = [false, false, false, false];
@@ -13,34 +12,7 @@
                 this.Sections.push(new RoomSection(G.RoomSections[i].type, G.RoomSections[i].grid));
             }
         }
-        //FillRoom() {
-        //    for (var k = 0; k < 4; k++) {
-        //        var nr = Math.floor(Math.random() * G.RoomSections.length);
-        //        var section = new RoomSection(G.RoomSections[nr].type, G.RoomSections[nr].grid);
-        //        if (this.CanBePlaced(section,k)) {
-        //            this.ApplyToRoom(section, k);
-        //            console.log(this.SectionsFilled);
-        //        }
-        //        else {
-        //            if (!this.RoomFilled()) {
-        //                k--;
-        //            }
-        //        }
-        //    }
-        //}
-        //RoomFilled(): boolean {
-        //    return this.SectionsFilled[0] == this.SectionsFilled[1] == this.SectionsFilled[2] == this.SectionsFilled[3] == true;
-        //}
-        //CanBePlaced(section: RoomSection, quadrant: number): boolean {
-        //    if (section.Type == "fourth") {
-        //        return this.SectionsFilled[quadrant];
-        //    }
-        //    else {
-        //        var type = section.Type == "horizontal" ? 0 : 1;
-        //        var locations = this.Locations[quadrant][type];
-        //        return !this.SectionsFilled[locations[0]] && !this.SectionsFilled[locations[1]];
-        //    }
-        //}
+
         RoomFilled(): boolean {
             return this.SectionsFilled[0] && this.SectionsFilled[1] && this.SectionsFilled[2] && this.SectionsFilled[3];
         }
@@ -82,7 +54,7 @@
         //paste this section intto the room in the given quadrant 
         ApplyToRoom(sectionindex: number, quadrant: number) {
             var section = new RoomSection(this.Sections[sectionindex].Type,this.Sections[sectionindex].Grid.slice());
-            console.log("placing:", section, "in", quadrant);
+            
             var posX = 1;
             var posY = 1;
             var newX = Math.floor((G.RoomHeight / 2) + 1);
@@ -121,10 +93,11 @@
                 }
             }
             //actually apply the sections to the room
+            var cellBuilder = new CellBuilder();
             for (var i = posX; i < posX + section.Grid.length; i++) {
                 for (var j = posY; j < posY + section.Grid[0].length; j++) {
                     if (this.Room.Inside(i, j)) {
-                        this.Room.Cells[i][j] = new Cell(i, j, section.Grid[i - posX][j - posY]);
+                        this.Room.Cells[i][j] = cellBuilder.Build(i, j, section.Grid[i - posX][j - posY]); 
                     }
                 }
             }
@@ -132,7 +105,6 @@
 
     }
     //class that describes a roomsection used for procedural generation,
-    //now still a fourth, which can be flipped to fit in any quadrant
      //based on stringarrays in G.roomsections
     export class RoomSection {
         Type: string;
