@@ -8,9 +8,18 @@ module WM.Event {
             this.Resources *= level;
         }
         Handle() {
-            wm.Player.Energy += this.Resources;
-            new UI.TextSpark("+" + this.Resources + " energy", wm.Player.View.x, wm.Player.View.y);
-            this.Resolve(true,true);
+            var self = this;
+            var effects = function () {
+                wm.Player.Energy += self.Resources;
+                wm.Level.Popup.Hide();
+                wm.Level.Popup = null;
+                console.log("handling treasure", wm.Player.Energy);
+                self.Resolve(true, true);
+            };
+            var msg = "You found "+this.Resources+" resources.";
+            wm.Level.Popup = wm.Level.game.add.existing(new UI.MessagePopup(msg,effects));
+            //new UI.TextSpark("+" + this.Resources + " energy", wm.Player.View.x, wm.Player.View.y);
+            
            
         }
     }

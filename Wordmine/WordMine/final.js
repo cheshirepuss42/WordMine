@@ -473,6 +473,21 @@ var WM;
 })(WM || (WM = {}));
 var WM;
 (function (WM) {
+    /// <reference path="../_reference.ts" />
+    (function (Event) {
+        var Creep = (function (_super) {
+            __extends(Creep, _super);
+            function Creep() {
+                _super.call(this, "creep");
+            }
+            return Creep;
+        })(Event.RoomEvent);
+        Event.Creep = Creep;
+    })(WM.Event || (WM.Event = {}));
+    var Event = WM.Event;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
     (function (Event) {
         var Treasure = (function (_super) {
             __extends(Treasure, _super);
@@ -482,9 +497,17 @@ var WM;
                 this.Resources *= level;
             }
             Treasure.prototype.Handle = function () {
-                wm.Player.Energy += this.Resources;
-                new WM.UI.TextSpark("+" + this.Resources + " energy", wm.Player.View.x, wm.Player.View.y);
-                this.Resolve(true, true);
+                var self = this;
+                var effects = function () {
+                    wm.Player.Energy += self.Resources;
+                    wm.Level.Popup.Hide();
+                    wm.Level.Popup = null;
+                    console.log("handling treasure", wm.Player.Energy);
+                    self.Resolve(true, true);
+                };
+                var msg = "You found " + this.Resources + " resources.";
+                wm.Level.Popup = wm.Level.game.add.existing(new WM.UI.MessagePopup(msg, effects));
+                //new UI.TextSpark("+" + this.Resources + " energy", wm.Player.View.x, wm.Player.View.y);
             };
             return Treasure;
         })(Event.RoomEvent);
@@ -1023,6 +1046,7 @@ var WM;
                 this.DrawLayer(this.WallsLayer);
                 this.DrawLayer(this.EventsLayer);
                 this.DrawLayer(this.UnminedLayer);
+                this.PlayerStats.setText("Energy: " + this.Player.Energy);
             };
 
             //draws each cell of a layer
@@ -1149,21 +1173,6 @@ window.onload = function () {
 /**/
 var WM;
 (function (WM) {
-    /// <reference path="../_reference.ts" />
-    (function (Event) {
-        var Creep = (function (_super) {
-            __extends(Creep, _super);
-            function Creep() {
-                _super.call(this, "creep");
-            }
-            return Creep;
-        })(Event.RoomEvent);
-        Event.Creep = Creep;
-    })(WM.Event || (WM.Event = {}));
-    var Event = WM.Event;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
     var G = (function () {
         function G() {
         }
@@ -1192,62 +1201,62 @@ var WM;
         G.style = { font: "16px Arial" };
 
         G.RoomSections = [
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        "XXX.XX",
-            //        "X.....",
-            //        "X..XXX",
-            //        "X..Xtt"]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        ".....X",
-            //        "ttt..X",
-            //        ".....X",
-            //        "X.XXXX"]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        "XXX...",
-            //        "XX....",
-            //        ".X..tt",
-            //        ".X...."]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        "X..XXX",
-            //        ".X.tt.",
-            //        "..X.X.",
-            //        "....X."]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        "XXXXXX",
-            //        "XXX.X.",
-            //        "XX.tt.",
-            //        "XXXXXX"]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        "X..XXX",
-            //        ".X..tt",
-            //        "..X.X.",
-            //        "....X."]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        ".tt...",
-            //        "...X..",
-            //        "...X..",
-            //        "..tt.."]
-            //},
+            {
+                "type": "fourth",
+                "grid": [
+                    "XXX.XX",
+                    "X.....",
+                    "X..XXX",
+                    "X..Xtt"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    ".....X",
+                    "ttt..X",
+                    ".....X",
+                    "X.XXXX"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "XXX...",
+                    "XX....",
+                    ".X..tt",
+                    ".X...."]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "X..XXX",
+                    ".X.tt.",
+                    "..X.X.",
+                    "....X."]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "XXXXXX",
+                    "XXX.X.",
+                    "XX.tt.",
+                    "XXXXXX"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "X..XXX",
+                    ".X..tt",
+                    "..X.X.",
+                    "....X."]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    ".tt...",
+                    "...X..",
+                    "...X..",
+                    "..tt.."]
+            },
             {
                 "type": "fourth",
                 "grid": [
@@ -1263,6 +1272,27 @@ var WM;
                     "eX.X.X",
                     ".X.X.X",
                     "...X.."]
+            },
+            {
+                "type": "vertical",
+                "grid": [
+                    ".....X",
+                    "XX....",
+                    ".....X",
+                    "XX..X.",
+                    ".....X",
+                    ".....X",
+                    "XX..X.",
+                    "...X..",
+                    "XX.XXX"]
+            },
+            {
+                "type": "horizontal",
+                "grid": [
+                    ".............",
+                    ".XXXXXXXX.X..",
+                    ".X...........",
+                    "XX.XXXXXXXXXX"]
             }
         ];
         G.events = {
@@ -1457,6 +1487,44 @@ var WM;
         Level.RoomSection = RoomSection;
     })(WM.Level || (WM.Level = {}));
     var Level = WM.Level;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    /// <reference path="../_reference.ts" />
+    (function (UI) {
+        var MessagePopup = (function (_super) {
+            __extends(MessagePopup, _super);
+            function MessagePopup(message, effects, img) {
+                if (typeof img === "undefined") { img = null; }
+                _super.call(this, 0, 0, WM.G.MapWidth, WM.G.MapHeight);
+                this.Effects = effects;
+                this.Padding = 10;
+                this.Image = img;
+                this.Message = this.add(new Phaser.Text(this.Game, this.Padding, this.Padding, message, WM.G.style));
+                this.CloseButton = this.add(new UI.TextButton(this.Game, "okay", WM.G.MapWidth, 70, this.Effects, null, "#ddf"));
+                this.CloseButton.y = WM.G.MapHeight - (70 + this.Padding);
+                this.CloseButton.Show();
+            }
+            MessagePopup.prototype.HandleInput = function (dir) {
+                this.Effects();
+            };
+            MessagePopup.prototype.Show = function () {
+                this.visible = this.exists = true;
+                this.CloseButton.visible = true;
+                this.Message.visible = true;
+                this.visible = this.exists = true;
+            };
+            MessagePopup.prototype.Hide = function () {
+                _super.prototype.Hide.call(this);
+                this.CloseButton.visible = false;
+                this.Message.visible = false;
+                this.visible = this.exists = false;
+            };
+            return MessagePopup;
+        })(UI.Popup);
+        UI.MessagePopup = MessagePopup;
+    })(WM.UI || (WM.UI = {}));
+    var UI = WM.UI;
 })(WM || (WM = {}));
 var WM;
 (function (WM) {

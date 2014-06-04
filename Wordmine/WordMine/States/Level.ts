@@ -137,6 +137,7 @@ module WM.States {
             this.DrawLayer(this.WallsLayer);
             this.DrawLayer(this.EventsLayer);
             this.DrawLayer(this.UnminedLayer);
+            this.PlayerStats.setText("Energy: " + this.Player.Energy);
         }
         //draws each cell of a layer
         DrawLayer(layer: Phaser.TilemapLayer) {

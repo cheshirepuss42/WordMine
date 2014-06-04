@@ -12,62 +12,62 @@ module WM {
         static style: any = { font: "16px Arial" };
         //data for roomsections, might move this to seperate thing and preload it, same for events
         static RoomSections: any = [
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        "XXX.XX",
-            //        "X.....",
-            //        "X..XXX",
-            //        "X..Xtt"]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        ".....X",
-            //        "ttt..X",
-            //        ".....X",
-            //        "X.XXXX"]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        "XXX...",
-            //        "XX....",
-            //        ".X..tt",
-            //        ".X...."]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        "X..XXX",
-            //        ".X.tt.",
-            //        "..X.X.",
-            //        "....X."]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        "XXXXXX",
-            //        "XXX.X.",
-            //        "XX.tt.",
-            //        "XXXXXX"]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        "X..XXX",
-            //        ".X..tt",
-            //        "..X.X.",
-            //        "....X."]
-            //},
-            //{
-            //    "type": "fourth",
-            //    "grid": [
-            //        ".tt...",
-            //        "...X..",
-            //        "...X..",
-            //        "..tt.."]
-            //},
+            {
+                "type": "fourth",
+                "grid": [
+                    "XXX.XX",
+                    "X.....",
+                    "X..XXX",
+                    "X..Xtt"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    ".....X",
+                    "ttt..X",
+                    ".....X",
+                    "X.XXXX"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "XXX...",
+                    "XX....",
+                    ".X..tt",
+                    ".X...."]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "X..XXX",
+                    ".X.tt.",
+                    "..X.X.",
+                    "....X."]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "XXXXXX",
+                    "XXX.X.",
+                    "XX.tt.",
+                    "XXXXXX"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "X..XXX",
+                    ".X..tt",
+                    "..X.X.",
+                    "....X."]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    ".tt...",
+                    "...X..",
+                    "...X..",
+                    "..tt.."]
+            },
             {
                 "type": "fourth",
                 "grid": [
@@ -85,27 +85,27 @@ module WM {
                     ".X.X.X",
                     "...X.."]
             }
-        //    ,
-        //    {
-        //        "type": "vertical",
-        //        "grid": [   ".....X",
-        //                    "XX....",
-        //                    ".....X",
-        //                    "XX..X.",
-        //                    ".....X",
-        //                    ".....X",
-        //                    "XX..X.",
-        //                    "...X..",
-        //                    "XX.XXX"]
-        //}
-        //    ,
-        //    {
-        //        "type": "horizontal",
-        //        "grid": [   ".............",
-        //                    ".XXXXXXXX.X..",
-        //                    ".X...........",
-        //                    "XX.XXXXXXXXXX"]
-        //    }
+            ,
+            {
+                "type": "vertical",
+                "grid": [   ".....X",
+                            "XX....",
+                            ".....X",
+                            "XX..X.",
+                            ".....X",
+                            ".....X",
+                            "XX..X.",
+                            "...X..",
+                            "XX.XXX"]
+        }
+            ,
+            {
+                "type": "horizontal",
+                "grid": [   ".............",
+                            ".XXXXXXXX.X..",
+                            ".X...........",
+                            "XX.XXXXXXXXXX"]
+            }
         ]
         static events: any = {
             "first": {

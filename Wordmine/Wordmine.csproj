@@ -39,6 +39,7 @@
     <TypeScriptCompile Include="WordMine\Event\Dialog.ts" />
     <TypeScriptCompile Include="WordMine\Event\Event.ts" />
     <TypeScriptCompile Include="WordMine\UI\DialogOption.ts" />
+    <TypeScriptCompile Include="WordMine\UI\MessagePopup.ts" />
     <TypeScriptCompile Include="WordMine\UI\DialogPanel.ts" />
     <TypeScriptCompile Include="WordMine\G.ts" />
     <TypeScriptCompile Include="WordMine\Game.ts" />
