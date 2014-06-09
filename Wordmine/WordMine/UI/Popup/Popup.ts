@@ -1,4 +1,4 @@
-﻿module WM.UI {
+﻿module WM.UI.Popup {
     export class Popup extends Phaser.Group{
         Background: Phaser.Sprite;
         Game: Phaser.Game;

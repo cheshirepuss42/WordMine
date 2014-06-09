@@ -1,8 +1,6 @@
-/// <reference path="../_reference.ts" />
-module WM.UI {
+/// <reference path="../../_reference.ts" />
+module WM.UI.Popup {
     export class DialogPanel extends Popup {
-        //text: Phaser.Text;
-        //background: Phaser.Sprite;
         text: Phaser.Text;
         image: string;//to be made
         Options: Array<DialogOption>;

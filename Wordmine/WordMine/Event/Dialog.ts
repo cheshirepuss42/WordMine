@@ -2,17 +2,17 @@
 module WM.Event {
     export class Dialog extends RoomEvent {
         EventData: any;
-        Panels: Array<UI.DialogPanel>;
+        Panels: Array<UI.Popup.DialogPanel>;
         CurrentPanel: number;
 
 
         constructor(event:string) {
             super("dialog");
             this.EventData = G.events[event];
-            this.Panels = new Array<UI.DialogPanel>();
+            this.Panels = new Array<UI.Popup.DialogPanel>();
             this.CurrentPanel = 0;
             for (var i = 0; i < this.EventData.panels.length; i++) {
-                this.Panels.push(new UI.DialogPanel(this.EventData.panels[i]));
+                this.Panels.push(new UI.Popup.DialogPanel(this.EventData.panels[i]));
             }
         }
         Handle() {

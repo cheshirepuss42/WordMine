@@ -1,7 +1,7 @@
 /// <reference path="../_reference.ts" />
 module WM.States {
     export class Level extends Phaser.State {
-        Popup: UI.Popup;
+        Popup: UI.Popup.Popup;
         Event: Event.RoomEvent;
         TargetCell: Level.Cell;
         Lvl: Level.LvlData;

@@ -16,7 +16,7 @@ module WM.Event {
                 self.Resolve(true, true);
             };
             var msg = "You found " + this.Resources + " resources.";
-            var popup = new UI.MessagePopup(msg, effects);
+            var popup = new UI.Popup.MessagePopup(msg, effects);
             popup.Open();
           
         }

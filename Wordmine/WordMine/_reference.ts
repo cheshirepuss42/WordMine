@@ -14,8 +14,9 @@
 /// <reference path="ui/filledrect.ts" />
 /// <reference path="ui/progressbar.ts" />
 /// <reference path="ui/textbutton.ts" />
-/// <reference path="ui/popup.ts" />
-/// <reference path="ui/dialogpanel.ts" />
+/// <reference path="ui/popup/popup.ts" />
+/// <reference path="ui/popup/dialogpanel.ts" />
+/// <reference path="ui/popup/messagepopup.ts" />
 /// <reference path="ui/dialogoption.ts" />
 /// <reference path="ui/letter.ts" />
 
