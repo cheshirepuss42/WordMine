@@ -5,24 +5,23 @@ module WM.UI {
         Image: string;
         CloseButton: DialogOption;        
         Padding: number;   
-        Effects: Function;     
+        //Effects: Function;     
         constructor(message:string,effects:Function,img:string=null) {
-            super(0, 0, G.MapWidth, G.MapHeight);
-            this.Effects = effects;
+            super(0, 0, G.MapWidth, G.MapHeight,effects);
+            //this.Effects = effects;
             this.Padding = 10;            
             this.Image = img;  
             this.Message = this.add(new Phaser.Text(this.Game, this.Padding, this.Padding, message, G.style));                      
-            this.CloseButton = this.add(new TextButton(this.Game, "okay", G.MapWidth, 70, this.Effects, null, "#ddf"));
+            this.CloseButton = this.add(new TextButton(this.Game, "okay", G.MapWidth, 70, this.Close, null, "#ddf"));
             this.CloseButton.y = G.MapHeight-(70+ this.Padding);
-            this.CloseButton.Show();
         }
 
         HandleInput(dir: string) {
-            this.Effects();
+            this.Close();
 
         }
         Show() {
-            this.visible = this.exists = true;           
+            super.Show();
             this.CloseButton.visible = true;
             this.Message.visible = true;
             this.visible = this.exists = true;

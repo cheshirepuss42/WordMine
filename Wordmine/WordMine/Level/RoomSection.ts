@@ -20,7 +20,6 @@
             while (!this.RoomFilled()) {
                 var sectionindex: number = Math.floor(Math.random() * this.Sections.length);
                 var quadrant: number = Math.floor(Math.random() * 4);
-                //console.log(sectionindex, quadrant, this.SectionsFilled);
                 if (this.SectionFitsInRoom(sectionindex, quadrant)) {
                     this.ApplyToRoom(sectionindex, quadrant);
                 }
@@ -53,8 +52,7 @@
 
         //paste this section intto the room in the given quadrant 
         ApplyToRoom(sectionindex: number, quadrant: number) {
-            var section = new RoomSection(this.Sections[sectionindex].Type,this.Sections[sectionindex].Grid.slice());
-            
+            var section = new RoomSection(this.Sections[sectionindex].Type,this.Sections[sectionindex].Grid.slice());            
             var posX = 1;
             var posY = 1;
             var newX = Math.floor((G.RoomHeight / 2) + 1);

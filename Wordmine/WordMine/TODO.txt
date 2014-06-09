@@ -35,19 +35,3 @@ Features:
 
 
 
-
-
-
--make combat-system
-	-make a new screen
-	-show letters to be picked
-	-show enemy
-
-
-	------------------------
-	1v1 spel:
-	thing vs humans
-	iedereen begint als mens behalve 1
-	thing kan mens besmetten als ze alleen zijn
-	mens kan robots bouwen die aanvallen als ze thing zien
-	doel mensen: thing dood 

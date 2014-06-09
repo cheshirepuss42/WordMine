@@ -440,9 +440,9 @@ var WM;
                 _super.call(this, "dialog");
                 this.EventData = WM.G.events[event];
                 this.Panels = new Array();
-                this.CurrentPanel = null;
+                this.CurrentPanel = 0;
                 for (var i = 0; i < this.EventData.panels.length; i++) {
-                    this.Panels.push(this.EventData.panels[i]);
+                    this.Panels.push(new WM.UI.DialogPanel(this.EventData.panels[i]));
                 }
             }
             Dialog.prototype.Handle = function () {
@@ -451,18 +451,20 @@ var WM;
             };
             Dialog.prototype.ShowPanel = function (nr) {
                 if (typeof nr === "undefined") { nr = 0; }
-                if (nr == -2) {
-                    wm.Level.Popup.Hide();
-                    this.Resolve(false, false);
-                } else if (nr == -1) {
-                    wm.Level.Popup.Hide();
-                    wm.Level.Popup = null;
-                    this.Resolve(true, true);
-                } else if (nr >= 0) {
+                if (nr < 0) {
+                    if (nr == -2) {
+                        this.Panels[this.CurrentPanel].Close();
+                        this.Resolve(false, false);
+                    }
+                    if (nr == -1) {
+                        this.Panels[this.CurrentPanel].Close();
+                        this.Resolve(true, true);
+                    }
+                } else {
                     if (nr > 0)
-                        wm.Level.Popup.Hide(); //close panel and show next
-                    wm.Level.Popup = wm.Level.game.add.existing(new WM.UI.DialogPanel(this.Panels[nr]));
-                    wm.Level.Popup.Show();
+                        this.Panels[this.CurrentPanel].Close();
+                    this.Panels[nr].Open();
+                    this.CurrentPanel = nr;
                 }
             };
             return Dialog;
@@ -479,6 +481,7 @@ var WM;
             __extends(Creep, _super);
             function Creep() {
                 _super.call(this, "creep");
+                //first show creep info, then the combat screen, then the combat results
             }
             return Creep;
         })(Event.RoomEvent);
@@ -502,12 +505,11 @@ var WM;
                     wm.Player.Energy += self.Resources;
                     wm.Level.Popup.Hide();
                     wm.Level.Popup = null;
-                    console.log("handling treasure", wm.Player.Energy);
                     self.Resolve(true, true);
                 };
                 var msg = "You found " + this.Resources + " resources.";
-                wm.Level.Popup = wm.Level.game.add.existing(new WM.UI.MessagePopup(msg, effects));
-                //new UI.TextSpark("+" + this.Resources + " energy", wm.Player.View.x, wm.Player.View.y);
+                var popup = new WM.UI.MessagePopup(msg, effects);
+                popup.Open();
             };
             return Treasure;
         })(Event.RoomEvent);
@@ -738,21 +740,31 @@ var WM;
     (function (UI) {
         var Popup = (function (_super) {
             __extends(Popup, _super);
-            function Popup(x, y, w, h) {
+            function Popup(x, y, w, h, onClose, onCloseContext) {
+                if (typeof onClose === "undefined") { onClose = null; }
+                if (typeof onCloseContext === "undefined") { onCloseContext = null; }
                 this.Game = wm.Level.game;
                 _super.call(this, this.Game, null, "popup", false);
+                this.OnClose = onClose;
+                this.OnCloseContext = onCloseContext;
                 this.x = x;
                 this.y = y;
                 this.width = w;
                 this.height = h;
-                this.CanBeRemoved = false;
-                this.Result = null;
                 this.Background = this.add(new Phaser.Image(this.Game, 0, 0, UI.FilledRect.getBMD(this.Game, w, h, "#eee"), null));
             }
+            Popup.prototype.Open = function () {
+                this.Game.add.existing(this);
+                this.Show();
+                wm.Level.Popup = this;
+            };
+
             //close popup and return the result
-            Popup.prototype.Resolve = function () {
+            Popup.prototype.Close = function () {
                 this.Hide();
-                this.CanBeRemoved = true;
+                if (this.OnClose != null)
+                    this.OnClose.call(this.OnCloseContext);
+                wm.Level.Popup = null;
             };
             Popup.prototype.HandleInput = function (input) {
             };
@@ -776,20 +788,13 @@ var WM;
             __extends(DialogPanel, _super);
             function DialogPanel(panel) {
                 _super.call(this, 0, 0, WM.G.MapWidth, WM.G.MapHeight);
+
                 this.padding = 10;
                 this.Options = new Array();
                 for (var j = 0; j < panel.options.length; j++) {
                     var option = panel.options[j];
                     if (WM.Event.Effect.Happens(option.conditions)) {
-                        var effects = function () {
-                            for (var i = 0; i < option.effects.length; i++) {
-                                WM.Event.Effect.Call(option.effects[i])();
-                            }
-                        };
-                        var eopt = new UI.DialogOption(this.Game, option.text, WM.G.MapWidth, 70, effects);
-                        this.add(eopt);
-                        eopt.y += 200 + ((this.Options.length - 1) * eopt.h);
-                        this.Options.push(eopt);
+                        this.BuildOption(option);
                     }
                 }
                 this.image = panel.img;
@@ -797,6 +802,21 @@ var WM;
                 this.SelectedOption = 0;
                 this.Hide();
             }
+            DialogPanel.prototype.BuildOption = function (option) {
+                var self = this;
+                var effects = function () {
+                    for (var i = 0; i < option.effects.length; i++) {
+                        WM.Event.Effect.Call(option.effects[i])();
+                    }
+                    self.Close();
+                };
+                var eopt = new UI.DialogOption(this.Game, option.text, WM.G.MapWidth, 70, effects);
+                eopt.y += 200 + ((this.Options.length - 1) * eopt.h);
+                this.Options.push(eopt);
+                this.add(eopt);
+                return eopt;
+            };
+
             DialogPanel.prototype.HandleInput = function (dir) {
                 this.Options[this.SelectedOption].button.tint = 0xeeeeee;
                 if (dir == "down") {
@@ -1358,8 +1378,6 @@ var WM;
                 while (!this.RoomFilled()) {
                     var sectionindex = Math.floor(Math.random() * this.Sections.length);
                     var quadrant = Math.floor(Math.random() * 4);
-
-                    //console.log(sectionindex, quadrant, this.SectionsFilled);
                     if (this.SectionFitsInRoom(sectionindex, quadrant)) {
                         this.ApplyToRoom(sectionindex, quadrant);
                     }
@@ -1390,7 +1408,6 @@ var WM;
             //paste this section intto the room in the given quadrant
             RoomSectionsHandler.prototype.ApplyToRoom = function (sectionindex, quadrant) {
                 var section = new RoomSection(this.Sections[sectionindex].Type, this.Sections[sectionindex].Grid.slice());
-
                 var posX = 1;
                 var posY = 1;
                 var newX = Math.floor((WM.G.RoomHeight / 2) + 1);
@@ -1494,22 +1511,23 @@ var WM;
     (function (UI) {
         var MessagePopup = (function (_super) {
             __extends(MessagePopup, _super);
+            //Effects: Function;
             function MessagePopup(message, effects, img) {
                 if (typeof img === "undefined") { img = null; }
-                _super.call(this, 0, 0, WM.G.MapWidth, WM.G.MapHeight);
-                this.Effects = effects;
+                _super.call(this, 0, 0, WM.G.MapWidth, WM.G.MapHeight, effects);
+
+                //this.Effects = effects;
                 this.Padding = 10;
                 this.Image = img;
                 this.Message = this.add(new Phaser.Text(this.Game, this.Padding, this.Padding, message, WM.G.style));
-                this.CloseButton = this.add(new UI.TextButton(this.Game, "okay", WM.G.MapWidth, 70, this.Effects, null, "#ddf"));
+                this.CloseButton = this.add(new UI.TextButton(this.Game, "okay", WM.G.MapWidth, 70, this.Close, null, "#ddf"));
                 this.CloseButton.y = WM.G.MapHeight - (70 + this.Padding);
-                this.CloseButton.Show();
             }
             MessagePopup.prototype.HandleInput = function (dir) {
-                this.Effects();
+                this.Close();
             };
             MessagePopup.prototype.Show = function () {
-                this.visible = this.exists = true;
+                _super.prototype.Show.call(this);
                 this.CloseButton.visible = true;
                 this.Message.visible = true;
                 this.visible = this.exists = true;

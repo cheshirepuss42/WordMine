@@ -3,36 +3,38 @@ module WM.Event {
     export class Dialog extends RoomEvent {
         EventData: any;
         Panels: Array<UI.DialogPanel>;
-        CurrentPanel: any;
+        CurrentPanel: number;
+
 
         constructor(event:string) {
             super("dialog");
             this.EventData = G.events[event];
             this.Panels = new Array<UI.DialogPanel>();
-            this.CurrentPanel = null;
+            this.CurrentPanel = 0;
             for (var i = 0; i < this.EventData.panels.length; i++) {
-                this.Panels.push(this.EventData.panels[i]);
+                this.Panels.push(new UI.DialogPanel(this.EventData.panels[i]));
             }
         }
         Handle() {
             //show first panel
             this.ShowPanel();
         }
-        ShowPanel(nr: number= 0) {
-            if (nr == -2) {//close panel, event stays
-                wm.Level.Popup.Hide();
-                this.Resolve(false, false);
+        ShowPanel(nr: number= 0) {         
+            if (nr < 0) {
+                if (nr == -2) {//close panel, event stays
+                    this.Panels[this.CurrentPanel].Close();
+                    this.Resolve(false, false);
+                }
+                if (nr == -1) {//close panel, remove event
+                    this.Panels[this.CurrentPanel].Close();
+                    this.Resolve(true, true);
+                }
             }
-            else if (nr == -1) {//close panel, remove event
-                wm.Level.Popup.Hide();
-                wm.Level.Popup = null;
-                this.Resolve(true, true);
-            }
-            else if (nr >= 0) {//first panel
+            else{//first panel
                 if (nr > 0)
-                    wm.Level.Popup.Hide();//close panel and show next
-                wm.Level.Popup = wm.Level.game.add.existing(new UI.DialogPanel(this.Panels[nr]));
-                wm.Level.Popup.Show();
+                    this.Panels[this.CurrentPanel].Close();         
+                this.Panels[nr].Open();
+                this.CurrentPanel = nr;
             }            
 
         }

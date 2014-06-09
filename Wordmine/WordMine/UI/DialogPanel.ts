@@ -9,27 +9,35 @@ module WM.UI {
         padding: number;
         SelectedOption: number;
         constructor(panel:any) {
-            super(0,0, G.MapWidth, G.MapHeight);
+            super(0, 0, G.MapWidth, G.MapHeight);
+
             this.padding = 10;           
             this.Options = new Array<DialogOption>();            
             for (var j = 0; j < panel.options.length; j++) {
                 var option = panel.options[j];
                 if (Event.Effect.Happens(option.conditions)) {
-                    var effects = function () {
-                        for (var i = 0; i < option.effects.length; i++) {
-                            Event.Effect.Call(option.effects[i])();
-                        }
-                    }
-                    var eopt = new DialogOption(this.Game, option.text, G.MapWidth, 70, effects);                 
-                    this.add(eopt);
-                    eopt.y += 200 + ((this.Options.length - 1) * eopt.h);
-                    this.Options.push(eopt);
+                    this.BuildOption(option);
                 }
             }
             this.image = panel.img;  
             this.text = this.add(new Phaser.Text(this.Game, this.padding, this.padding, panel.text, G.style));  
             this.SelectedOption = 0;          
             this.Hide();
+        }
+
+        BuildOption(option: any): DialogOption {
+            var self = this;
+            var effects = function () {
+                for (var i = 0; i < option.effects.length; i++) {
+                    Event.Effect.Call(option.effects[i])();
+                }
+                self.Close();
+            }
+            var eopt = new DialogOption(this.Game, option.text, G.MapWidth, 70, effects);  
+            eopt.y += 200 + ((this.Options.length - 1) * eopt.h);
+            this.Options.push(eopt);
+            this.add(eopt);
+            return eopt;
         }
 
         HandleInput(dir:string) {
