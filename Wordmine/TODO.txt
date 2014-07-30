@@ -1,0 +1,80 @@
+﻿Fixes:
+-do all this without phaser, as it is just in the way of things i know how to do without it.
+-so i have to load all the assets ennd start the game
+-no canvas, or at least not for the map.
+-so first i have to load a level and show the map in a grid of imgs
+-it should be with layers, so we need to efine the layers first and then show them from the lvldata
+
+
+Features:
+
+
+
+
+
+
+
+
+
+-fix
+-make everything scalable for different screens
+-add creeps
+	-add to the roomsections
+	-location?
+	-bosses?
+-show info for player
+
+-make items
+-make random shit
+
+-decide how interface will look
+
+-show info for selected tile
+
+-add stairsdown event
+-make map zoomed in and draggable so the squares can be clickable, might not be necessay if there is a better ui
+Creep:
+	-has attack, defense and health
+	-attack can have effects
+	-global effect (like half damage from a color, no effect from words <5)
+	-has a color
+	-gives treasure when beaten
+	-blocks path (clears when beaten)
+
+Letters:
+	-can be vowel or consonant
+	-upper or lower case
+		-upper case +1 damage
+	-a particular color (gives an effect)
+		-blue +1 damage
+		-white +1 heal
+		-grey no effect
+		-black +1 energy
+		-red oppponent -0.5 defense
+		-green opponent -0.5 attack
+		-or smth
+
+Word:
+	-made during combat or shrines
+	-combination of collected letters and letters gotten in combat
+	-when made, a combination of effects is applied
+	-must be in the dictionary
+	-each letter does one damage
+	-combinations of letter-attributes:
+		-starts with upper case and rest lower case: damage x2
+		-all same color
+		-no same color
+
+
+Combat:
+	-each turn:	
+		-choose one of a set of letters (how much to choose from is upgradable) (maybe just vowels)
+		-the chosen letters can be used only during this combat
+		-try to make word from collected letters and chosen letters
+		-make a word or skip turn
+		-word does damage + effects 
+		-opponent does damage + effects each turn
+		
+
+
+

@@ -5,3 +5,23 @@
 span {
     font-style: italic;
 }
+.cell{
+    position:absolute;
+    background-image: url("/img/t000.png");
+    background-repeat: no-repeat;
+
+}
+#map{
+    position:relative;
+}
+#popup {
+    position:relative;
+    z-index:100;
+    background-color:#808080;
+    float:left;
+    /*width:300px;
+    height:300px;*/
+}
+#ui {
+    position:relative;
+}

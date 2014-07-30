@@ -3,12 +3,30 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Spandrel</title>
+    <title>WordMine</title>
     <link rel="stylesheet" href="app.css" type="text/css" />
-
+    <script src="http://code.jquery.com/jquery-1.8.0.js"></script>
+    <script src="http://code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
+    <script src="final.js"></script>
 </head>
 <body>
-    <a href="/wordmine">wordmine</a>
 
+    <div id="map">
+    </div>
+    <div id="popup">
+    </div>
+    <div id="ui">
+    </div>
+   <div id="debug">
+       <input type="radio" name="toggleMined" onclick="changeMinedview('on')"/>
+       <span>show unmined</span>
+       <input type="radio" name="toggleMined" selected="selected" onclick="changeMinedview('off')"/>
+       <span>regular</span>
+   </div>
+    <script>
+        function changeMinedview(type) {
+
+        }
+    </script>
 </body>
 </html>
