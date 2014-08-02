@@ -49,10 +49,13 @@
     <TypeScriptCompile Include="Level\RoomSection.ts" />
     <TypeScriptCompile Include="lib\jquery.d.ts" />
     <TypeScriptCompile Include="lib\jqueryui.d.ts" />
+    <TypeScriptCompile Include="UI\Button.ts" />
     <TypeScriptCompile Include="UI\DialogOption.ts" />
+    <TypeScriptCompile Include="UI\Label.ts" />
     <TypeScriptCompile Include="UI\Popup\DialogPanel.ts" />
     <TypeScriptCompile Include="UI\Popup\MessagePopup.ts" />
     <TypeScriptCompile Include="UI\Popup\Popup.ts" />
+    <TypeScriptCompile Include="UI\SideBar.ts" />
     <TypeScriptCompile Include="UI\TextButton.ts" />
     <TypeScriptCompile Include="_reference.ts" />
   </ItemGroup>
@@ -95,7 +98,8 @@
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptRemoveComments>true</TypeScriptRemoveComments>
     <TypeScriptSourceMap>false</TypeScriptSourceMap>
-    <TypeScriptModuleKind>AMD</TypeScriptModuleKind>
+    <TypeScriptModuleKind>none</TypeScriptModuleKind>
+    <TypeScriptOutFile>final.js</TypeScriptOutFile>
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(VSToolsPath)\TypeScript\Microsoft.TypeScript.targets')" />
 </Project>

@@ -24,4 +24,9 @@ span {
 }
 #ui {
     position:relative;
+    background-color:#eeeeee;
+}
+#wrapper{
+    width:100%;
+    height:416px;
 }

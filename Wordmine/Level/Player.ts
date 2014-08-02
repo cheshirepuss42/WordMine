@@ -18,7 +18,17 @@ module WM.Level {
             }
             this.draw();
         }
-        Energy: number;
+        _Energy: number;
+        set Energy(nrg: number) {            
+            if (nrg < 0) {
+                this.Health += Math.floor(nrg / 10);
+                nrg = 0;
+            }
+            this._Energy = (nrg < this.MaxEnergy) ? nrg : this.MaxEnergy;
+        }
+        get Energy(): number {
+            return this._Energy;
+        }
         MaxEnergy: number;
         MaxHealth: number;
         MiningCost: number;
@@ -34,16 +44,10 @@ module WM.Level {
         name: string;
 
         constructor() {
-            this.Health = 100;
-            this.Energy = 250;
+            this.Health = this.MaxHealth= 100;
+            this.Energy = this.MaxEnergy = 250;
         }
         getView() {
-            //var id = "c_" + this.Cell.RoomX + "_" + this.Cell.RoomY + "_" + layer;
-            //if ($("#" + id).length) {
-            //    $("#" + id).remove();
-            //}
-            //var index = this.GetTileIndex(G.layerTypes[layer]);
-            //var opacity = (G.layerTypes[layer] != "unmined" || this.MinedOut == 0) ? null : this.MinedOut;
             return $(wm.makeMapElement(this.Cell.RoomX, this.Cell.RoomY, 1, G.layerTypes.length + 1, "player"));
         }
         draw() {

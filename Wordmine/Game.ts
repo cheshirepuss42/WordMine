@@ -3,24 +3,21 @@ module WM {
     export class Main {
         mapView: JQuery;
         popupView: JQuery;
-        uiView: JQuery;
+        sidebar: UI.SideBar;
         currentLevel: Level.LvlData;
         currentRoom: Level.Room;
         player: Level.Player;
         targetCell: Level.Cell;
         popup: UI.Popup.Popup;
         constructor() {    
-            G.CellSize = G.GameHeight / G.RoomHeight;        
+            G.CellSize = G.GameHeight / G.RoomHeight;   
+            setTimeout(function () { window.scrollTo(0, 1); }, 10);      
             this.mapView = $("#map");
             this.popupView = $("#popup");
-            this.uiView = $("#ui");           
+            this.sidebar = new UI.SideBar();           
             this.popupView.css("width", G.MapWidth + "px");
             this.popupView.css("height", G.MapHeight + "px");
-            this.uiView.css("left", (G.MapWidth+1) + "px");
-            this.uiView.css("top", "0px");
-            this.uiView.css("width", G.UIWidth + "px");
-            this.uiView.css("height", G.UIHeight + "px");
-            this.uiView.css("background-color", "#ff0000");
+
             this.preload(G.assets); 
             this.popup = null;
             
@@ -63,6 +60,7 @@ module WM {
                 }
             }
             this.player.draw();
+            this.sidebar.update();
         }
 
         makeMapElement(x, y, index, layer,id=null,opacity=null) {            
@@ -103,15 +101,12 @@ module WM {
                 var target = this.currentRoom.GetNeighbour(dir, this.player.Cell.RoomX, this.player.Cell.RoomY);
                 if (target != null) {
                     this.currentRoom.MoveToTile(this.player, target.RoomY, target.RoomX);
-                    //this.drawRoom();
-
-                    //target.draw();
                 }
-                //this.PlayerStats.setText("Energy: " + this.Player.Energy);
             }
             else {
                 this.popup.HandleInput(dir);
             }
+            this.sidebar.update();
         }
         toCombat(creepData:Event.CreepData) {
 

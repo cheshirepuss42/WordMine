@@ -18,12 +18,11 @@ module WM.UI.Popup {
         }
         Open() {
             super.Open();
-            var text = $("<div class='popup_text'>" + this.Message + "</div>");
-            var closeButton = $("<button >Close</button>");
+            var text = new Label(this.Message,"popup_text");
             var self = this;
-            closeButton.click(function () { console.log("click close"); self.Close();});
-            this.view.append(text);
-            this.view.append(closeButton);
+            var closeButton = new Button("close", function () { console.log("click close"); self.Close(); });
+            this.view.append(text.view);
+            this.view.append(closeButton.view);
         }
 
 

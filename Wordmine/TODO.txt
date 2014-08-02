@@ -1,14 +1,12 @@
 ﻿Fixes:
--do all this without phaser, as it is just in the way of things i know how to do without it.
--so i have to load all the assets ennd start the game
--no canvas, or at least not for the map.
--so first i have to load a level and show the map in a grid of imgs
--it should be with layers, so we need to efine the layers first and then show them from the lvldata
+
 
 
 Features:
-
-
+- show and update stats in sidebar
+- make dialogs work
+- build combat
+- style
 
 
 

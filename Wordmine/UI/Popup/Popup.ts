@@ -18,15 +18,9 @@ module WM.UI.Popup {
             this.height = h;
             this.view = wm.popupView;
             this.view.hide();
-            
-            //this.add(new Phaser.Image(this.Game, 0, 0, FilledRect.getBMD(this.Game, w, h, "#eee"), null));
         }
         Open() {
             this.view.show();
-            //append("<div>bla</div>");
-            //wm.view.append(this.view);
-            //console.log(this.view);
-            //console.log(wm.view);
             wm.popup = this;        
         }
         //close popup and return the result

@@ -5,11 +5,14 @@
 
 /// <reference path="game.ts" />
 
+/// <reference path="ui/label.ts" />
+/// <reference path="ui/button.ts" />
 /// <reference path="ui/popup/popup.ts" />
 /// <reference path="ui/popup/dialogpanel.ts" />
 /// <reference path="ui/popup/messagepopup.ts" />
 /// <reference path="ui/textbutton.ts" />
 /// <reference path="ui/dialogoption.ts" />
+
 
 /// <reference path="event/event.ts" />
 /// <reference path="event/treasure.ts" />

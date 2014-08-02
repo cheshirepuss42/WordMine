@@ -192,22 +192,20 @@
     })();
     WM.G = G;
 })(WM || (WM = {}));
-/// <reference path="_reference.ts"/>
 var WM;
 (function (WM) {
     var Main = (function () {
         function Main() {
             WM.G.CellSize = WM.G.GameHeight / WM.G.RoomHeight;
+            setTimeout(function () {
+                window.scrollTo(0, 1);
+            }, 10);
             this.mapView = $("#map");
             this.popupView = $("#popup");
-            this.uiView = $("#ui");
+            this.sidebar = new WM.UI.SideBar();
             this.popupView.css("width", WM.G.MapWidth + "px");
             this.popupView.css("height", WM.G.MapHeight + "px");
-            this.uiView.css("left", (WM.G.MapWidth + 1) + "px");
-            this.uiView.css("top", "0px");
-            this.uiView.css("width", WM.G.UIWidth + "px");
-            this.uiView.css("height", WM.G.UIHeight + "px");
-            this.uiView.css("background-color", "#ff0000");
+
             this.preload(WM.G.assets);
             this.popup = null;
         }
@@ -237,7 +235,6 @@ var WM;
             this.player.Cell = this.currentRoom.Middle();
             this.player.Cell.MinedOut = 1;
 
-            //this.currentRoom.Dump();
             this.drawRoom();
             this.setupKeys();
         };
@@ -249,6 +246,7 @@ var WM;
                 }
             }
             this.player.draw();
+            this.sidebar.update();
         };
 
         Main.prototype.makeMapElement = function (x, y, index, layer, id, opacity) {
@@ -298,13 +296,11 @@ var WM;
                 var target = this.currentRoom.GetNeighbour(dir, this.player.Cell.RoomX, this.player.Cell.RoomY);
                 if (target != null) {
                     this.currentRoom.MoveToTile(this.player, target.RoomY, target.RoomX);
-                    //this.drawRoom();
-                    //target.draw();
                 }
-                //this.PlayerStats.setText("Energy: " + this.Player.Energy);
             } else {
                 this.popup.HandleInput(dir);
             }
+            this.sidebar.update();
         };
         Main.prototype.toCombat = function (creepData) {
         };
@@ -326,7 +322,38 @@ window.onload = function () {
 var WM;
 (function (WM) {
     (function (UI) {
-        /// <reference path="../../_reference.ts"/>
+        var Label = (function () {
+            function Label(text, cssclass) {
+                if (typeof cssclass === "undefined") { cssclass = null; }
+                var cl = (cssclass == null) ? "" : "class='" + cssclass + "'";
+                this.view = $("<div " + cl + ">" + text + "</div>");
+            }
+            return Label;
+        })();
+        UI.Label = Label;
+    })(WM.UI || (WM.UI = {}));
+    var UI = WM.UI;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (UI) {
+        var Button = (function () {
+            function Button(text, onclick, cssclass) {
+                if (typeof cssclass === "undefined") { cssclass = null; }
+                var cl = (cssclass == null) ? "" : "class='" + cssclass + "'";
+                var content = "<button " + cl + ">" + text + "</button>";
+                this.view = $(content);
+                this.view.click(onclick);
+            }
+            return Button;
+        })();
+        UI.Button = Button;
+    })(WM.UI || (WM.UI = {}));
+    var UI = WM.UI;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (UI) {
         (function (_Popup) {
             var Popup = (function () {
                 function Popup(x, y, w, h, onClose, onCloseContext) {
@@ -340,19 +367,12 @@ var WM;
                     this.height = h;
                     this.view = wm.popupView;
                     this.view.hide();
-                    //this.add(new Phaser.Image(this.Game, 0, 0, FilledRect.getBMD(this.Game, w, h, "#eee"), null));
                 }
                 Popup.prototype.Open = function () {
                     this.view.show();
-
-                    //append("<div>bla</div>");
-                    //wm.view.append(this.view);
-                    //console.log(this.view);
-                    //console.log(wm.view);
                     wm.popup = this;
                 };
 
-                //close popup and return the result
                 Popup.prototype.Close = function () {
                     this.view.empty();
                     this.view.hide();
@@ -379,7 +399,6 @@ var __extends = this.__extends || function (d, b) {
 var WM;
 (function (WM) {
     (function (UI) {
-        /// <reference path="../../_reference.ts" />
         (function (Popup) {
             var DialogPanel = (function (_super) {
                 __extends(DialogPanel, _super);
@@ -410,12 +429,10 @@ var WM;
                     eopt.y += 200 + ((this.Options.length - 1) * eopt.h);
                     this.Options.push(eopt);
 
-                    //this.add(eopt);
                     return eopt;
                 };
 
                 DialogPanel.prototype.HandleInput = function (dir) {
-                    //this.Options[this.SelectedOption].button.tint = 0xeeeeee;
                     if (dir == "down") {
                         this.SelectedOption++;
                         this.SelectedOption = (this.SelectedOption > this.Options.length - 1) ? 0 : this.SelectedOption;
@@ -424,7 +441,6 @@ var WM;
                         this.SelectedOption = (this.SelectedOption < 0) ? this.Options.length - 1 : this.SelectedOption;
                     } else
                         this.Options[this.SelectedOption].onClick();
-                    //this.Options[this.SelectedOption].button.tint = 0xaaaaee;
                 };
                 return DialogPanel;
             })(Popup.Popup);
@@ -437,7 +453,6 @@ var WM;
 var WM;
 (function (WM) {
     (function (UI) {
-        /// <reference path="../../_reference.ts" />
         (function (Popup) {
             var MessagePopup = (function (_super) {
                 __extends(MessagePopup, _super);
@@ -449,21 +464,17 @@ var WM;
                     this.Padding = 10;
                     this.Image = img;
                     this.Message = message;
-                    //this.Message = this.add(new Phaser.Text(this.Game, this.Padding, this.Padding, message, G.style));
-                    //this.CloseButton = this.add(new TextButton(this.Game, "okay", G.MapWidth, 70, this.Close, this, "#ddf"));
-                    //this.CloseButton.y = G.MapHeight-(70+ this.Padding);
                 }
                 MessagePopup.prototype.Open = function () {
                     _super.prototype.Open.call(this);
-                    var text = $("<div class='popup_text'>" + this.Message + "</div>");
-                    var closeButton = $("<button >Close</button>");
+                    var text = new UI.Label(this.Message, "popup_text");
                     var self = this;
-                    closeButton.click(function () {
+                    var closeButton = new UI.Button("close", function () {
                         console.log("click close");
                         self.Close();
                     });
-                    this.view.append(text);
-                    this.view.append(closeButton);
+                    this.view.append(text.view);
+                    this.view.append(closeButton.view);
                 };
 
                 MessagePopup.prototype.HandleInput = function (dir) {
@@ -503,7 +514,6 @@ var WM;
 })(WM || (WM = {}));
 var WM;
 (function (WM) {
-    /// <reference path="../_reference.ts" />
     (function (UI) {
         var DialogOption = (function (_super) {
             __extends(DialogOption, _super);
@@ -518,13 +528,10 @@ var WM;
 })(WM || (WM = {}));
 var WM;
 (function (WM) {
-    /// <reference path="../_reference.ts" />
     (function (Event) {
         var RoomEvent = (function () {
             function RoomEvent(type) {
                 this.Type = type;
-                //pick one from the list
-                //
             }
             RoomEvent.prototype.Handle = function () {
             };
@@ -533,7 +540,6 @@ var WM;
                     wm.targetCell.Event = null;
                     wm.player.Cell = wm.targetCell;
                 }
-                //wm.drawCell(wm.targetCell.RoomX,wm.targetCell.RoomY);
             };
             return RoomEvent;
         })();
@@ -576,7 +582,43 @@ var WM;
 })(WM || (WM = {}));
 var WM;
 (function (WM) {
-    /// <reference path="../_reference.ts" />
+    (function (Event) {
+        var Creep = (function (_super) {
+            __extends(Creep, _super);
+            function Creep(name) {
+                _super.call(this, "creep");
+                this.Data = new CreepData(WM.G.creeps[name]);
+                this.ResultPanel = new WM.UI.Popup.MessagePopup("result", null, this.Resolve, this);
+                this.InfoPanel = new WM.UI.Popup.MessagePopup("blaaa", null, this.ResultPanel.Open, this.ResultPanel);
+            }
+            Creep.prototype.Handle = function () {
+                this.InfoPanel.Open();
+            };
+            Creep.prototype.Resolve = function () {
+                _super.prototype.Resolve.call(this, true);
+                wm.toCombat(this.Data);
+            };
+            return Creep;
+        })(Event.RoomEvent);
+        Event.Creep = Creep;
+        var CreepData = (function () {
+            function CreepData(data) {
+                this.Name = data['name'];
+                this.Description = data['descr'];
+                this.Image = data['img'];
+                this.Attack = data['a'];
+                this.Defense = data['d'];
+                this.Health = data['h'];
+                this.Reward = new Event.Treasure(data['reward']);
+            }
+            return CreepData;
+        })();
+        Event.CreepData = CreepData;
+    })(WM.Event || (WM.Event = {}));
+    var Event = WM.Event;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
     (function (Event) {
         var Dialog = (function (_super) {
             __extends(Dialog, _super);
@@ -590,7 +632,6 @@ var WM;
                 }
             }
             Dialog.prototype.Handle = function () {
-                //show first panel
                 this.ShowPanel();
             };
             Dialog.prototype.ShowPanel = function (nr) {
@@ -619,7 +660,6 @@ var WM;
 })(WM || (WM = {}));
 var WM;
 (function (WM) {
-    /// <reference path="../_reference.ts" />
     (function (Event) {
         var Effect = (function () {
             function Effect() {
@@ -631,18 +671,10 @@ var WM;
                     if (elems[0] == "has") {
                         result = wm.player.Has(elems[1]);
                     } else {
-                        elems[0] = elems[0].substr(1, elems[0].length - 1); //remove star
+                        elems[0] = elems[0].substr(1, elems[0].length - 1);
                         var call = elems[0].split('.');
                         var mod = elems[1];
                         var am = elems[2];
-                        //var target = wm[call[0]][call[1]];
-                        //switch (mod) {
-                        //    case "true": result = target == true;break;
-                        //    case "false": result = target == false;break;
-                        //    case "=": result = am == target;break;
-                        //    case ">": result = am < target;break;
-                        //    case "<": result = am > target;break;
-                        //}
                     }
                     if (!result)
                         return false;
@@ -675,12 +707,10 @@ var WM;
                     var mod = elems[1];
                     var am = elems[2];
                     if (call.indexOf("*") < 0) {
-                        //special function
                         f = function () {
                             wm[call](am);
                         };
                     } else {
-                        //
                         call = call.replace("*", "");
                         var elems = call.split('.');
                         var context = wm[elems[0]];
@@ -759,7 +789,6 @@ var WM;
                 return false;
             };
 
-            //paste this section intto the room in the given quadrant
             RoomSectionsHandler.prototype.ApplyToRoom = function (sectionindex, quadrant) {
                 var section = new RoomSection(this.Sections[sectionindex].Type, this.Sections[sectionindex].Grid.slice());
                 var posX = 1;
@@ -768,7 +797,6 @@ var WM;
                 var newY = Math.floor((WM.G.RoomWidth / 2) + 1);
                 this.SectionsFilled[quadrant] = true;
 
-                //if the grid is a fourth of the total, flip it so it will be mirrored to the right quadrant
                 if (section.Type == "fourth") {
                     switch (quadrant) {
                         case 1:
@@ -810,7 +838,6 @@ var WM;
                     }
                 }
 
-                //actually apply the sections to the room
                 var cellBuilder = new Level.CellBuilder();
                 for (var i = posX; i < posX + section.Grid.length; i++) {
                     for (var j = posY; j < posY + section.Grid[0].length; j++) {
@@ -824,20 +851,16 @@ var WM;
         })();
         Level.RoomSectionsHandler = RoomSectionsHandler;
 
-        //class that describes a roomsection used for procedural generation,
-        //based on stringarrays in G.roomsections
         var RoomSection = (function () {
             function RoomSection(type, grid) {
                 this.Type = type;
 
-                //copy the grid from the data from G, so we can manipulate it
                 this.Grid = grid.slice();
             }
             RoomSection.prototype.Dump = function () {
                 console.log(this.Grid.join("\n"));
             };
 
-            //flips the section so it can be mirrored in the different quadrant
             RoomSection.prototype.Flip = function (type) {
                 if (type == "horizontal") {
                     for (var i = 0; i < this.Grid.length; i++) {
@@ -862,7 +885,6 @@ var WM;
 var WM;
 (function (WM) {
     (function (Level) {
-        //this contains all the data for the cell, but none of the drawing routines. The drawing is done in the room
         var Cell = (function () {
             function Cell(roomx, roomy, typechar) {
                 this.RoomX = roomx;
@@ -888,33 +910,16 @@ var WM;
                 }
             };
 
-            //getView(x, y, layer): string {
-            //    var index = this.GetTileIndex(G.layerTypes[layer]);
-            //    var iX = (index % 16) * G.CellSize;
-            //    var iY = Math.floor(index / 16) * G.CellSize;
-            //    var style = "";
-            //    style += "z-index:" + layer + ";";
-            //    console.log("opacity:" + this.MinedOut + ";");
-            //    style += "opacity:" + this.MinedOut + ";";
-            //    style += "top:" + (x * G.CellSize) + "px;";
-            //    style += "left:" + (y * G.CellSize) + "px;";
-            //    style += "background-position: -" + iX + "px -" + iY + "px;";
-            //    return "<div class='cell' style='" + style + "'></div>";
-            //}
-            //see if the url indicates whether to show the unminedlayer
             Cell.prototype.UnminedByQuery = function () {
                 var querystring = window.location.href.split("?");
                 var fromquery = (querystring.length > 1) ? querystring[1] : "";
                 return (fromquery.indexOf("mined") > -1) ? true : false;
             };
 
-            //has a some property which causes an event
             Cell.prototype.HasEvent = function () {
-                // return this.Event != null || this.Exit != null;
                 return this.Exit != null;
             };
 
-            //get the tilesheetindex for the given layer
             Cell.prototype.GetTileIndex = function (layername) {
                 var index = 0;
                 switch (layername) {
@@ -956,7 +961,6 @@ var WM;
                 this.tileCharGroups = { empty: ".", creep: "cC", wall: "xX", treasure: "tT", dialog: "dD" };
             }
             CellBuilder.prototype.Build = function (xpos, ypos, tileChar) {
-                //generate the randomized cell for the tilechar
                 var cell = new Level.Cell(xpos, ypos, tileChar);
                 var group = this.groupName(tileChar);
                 switch (tileChar) {
@@ -1075,7 +1079,6 @@ var WM;
 })(WM || (WM = {}));
 var WM;
 (function (WM) {
-    /// <reference path="../_reference.ts" />
     (function (Level) {
         var LvlData = (function (_super) {
             __extends(LvlData, _super);
@@ -1089,7 +1092,6 @@ var WM;
                     }
                 }
 
-                //apply the exits in the rooms
                 this.SetExits();
             }
             LvlData.prototype.SetExits = function () {
@@ -1097,13 +1099,11 @@ var WM;
                     for (var j = 0; j < this.Width; j++) {
                         var here = this.Cells[i][j];
 
-                        //get the surrounding cells
                         var above = (this.Inside(i, j - 1)) ? this.Cells[i][j - 1] : null;
                         var below = (this.Inside(i, j + 1)) ? this.Cells[i][j + 1] : null;
                         var left = (this.Inside(i - 1, j)) ? this.Cells[i - 1][j] : null;
                         var right = (this.Inside(i + 1, j)) ? this.Cells[i + 1][j] : null;
 
-                        //add an exit to them if necessary
                         if (above != null) {
                             this.Cells[i][j].AddExit(new Level.RoomExit(above, "top"));
                         }
@@ -1130,8 +1130,8 @@ var WM;
     (function (Level) {
         var Player = (function () {
             function Player() {
-                this.Health = 100;
-                this.Energy = 250;
+                this.Health = this.MaxHealth = 100;
+                this.Energy = this.MaxEnergy = 250;
             }
             Object.defineProperty(Player.prototype, "Cell", {
                 get: function () {
@@ -1154,6 +1154,21 @@ var WM;
                 configurable: true
             });
 
+            Object.defineProperty(Player.prototype, "Energy", {
+                get: function () {
+                    return this._Energy;
+                },
+                set: function (nrg) {
+                    if (nrg < 0) {
+                        this.Health += Math.floor(nrg / 10);
+                        nrg = 0;
+                    }
+                    this._Energy = (nrg < this.MaxEnergy) ? nrg : this.MaxEnergy;
+                },
+                enumerable: true,
+                configurable: true
+            });
+
             Object.defineProperty(Player.prototype, "Health", {
                 get: function () {
                     return this._health;
@@ -1166,12 +1181,6 @@ var WM;
             });
 
             Player.prototype.getView = function () {
-                //var id = "c_" + this.Cell.RoomX + "_" + this.Cell.RoomY + "_" + layer;
-                //if ($("#" + id).length) {
-                //    $("#" + id).remove();
-                //}
-                //var index = this.GetTileIndex(G.layerTypes[layer]);
-                //var opacity = (G.layerTypes[layer] != "unmined" || this.MinedOut == 0) ? null : this.MinedOut;
                 return $(wm.makeMapElement(this.Cell.RoomX, this.Cell.RoomY, 1, WM.G.layerTypes.length + 1, "player"));
             };
             Player.prototype.draw = function () {
@@ -1189,7 +1198,6 @@ var WM;
             Player.prototype.LoseItem = function (item) {
             };
             Player.prototype.Move = function (dir) {
-                //handle moving
             };
             return Player;
         })();
@@ -1205,11 +1213,9 @@ var WM;
             function Room(width, height, x, y, roomdata) {
                 _super.call(this, width, height);
 
-                //set position in lvlgrid
                 this.PosX = x;
                 this.PosY = y;
 
-                //exits are filled and applied later at lvldata
                 this.Exits = new Array();
 
                 for (var i = 0; i < this.Height; i++) {
@@ -1217,33 +1223,25 @@ var WM;
                     for (var j = 0; j < this.Width; j++) {
                         this.Cells[i][j] = new Level.Cell(i, j, ".");
 
-                        //set surrounding walls, exits are set in lvldata
                         this.Cells[i][j].Passable = (i == this.Height - 1 || i == 0 || j == this.Width - 1 || j == 0) ? false : true;
                     }
                 }
 
-                //applying random roomsections as defined in g.roomsections, needs 1x2 and 2x1 sections
-                //keep track of which sections are filled
                 var handler = new Level.RoomSectionsHandler(this);
                 handler.FillRoom();
             }
-            //can the player reach the minedout cell
             Room.prototype.CellReachable = function (player, x, y) {
                 var px = player.Cell.RoomX;
                 var py = player.Cell.RoomY;
                 return this.Cells[x][y].MinedOut == 1 || (px + 1 == x && py == y) || (px - 1 == x && py == y) || (px == x && py + 1 == y) || (px == x && py - 1 == y);
             };
 
-            //handle interaction between player and tile
             Room.prototype.MoveToTile = function (player, x, y) {
-                //is it in the map?
                 if (this.Inside(y, x)) {
                     var target = this.Cells[y][x];
                     wm.targetCell = target;
 
-                    //is cell minedout?
                     if (target.MinedOut == 1) {
-                        //if there is some type of event
                         if (target.Event != null) {
                             target.Event.Handle();
                         } else if (target.Exit != null) {
@@ -1251,25 +1249,16 @@ var WM;
                         } else {
                             if (target.Passable) {
                                 player.Cell = target;
-                                //set surrounding cells on
-                                //var dirs = ["up", "right", "down", "left"];
-                                //for (var i = 0; i < dirs.length; i++) {
-                                //    var cell = this.GetNeighbour(dirs[i], target.RoomX, target.RoomY);
-                                //    if (cell.MinedOut == 0)
-                                //        cell.MinedOut = 0.5;
-                                //}
                             }
                         }
                     } else {
                         target.MinedOut = 1;
                         player.Energy -= 10;
                         target.draw();
-                        //new UI.TextSpark("-10 energy", player.View.x, player.View.y);
                     }
                 }
             };
 
-            //add the exit and make the cell an exit
             Room.prototype.AddExit = function (exit) {
                 this.Exits.push(exit);
                 var cell = this.GetExitCell(exit.ExitType);
@@ -1277,7 +1266,6 @@ var WM;
                 cell.Passable = true;
             };
 
-            //find the cell based on the type of exit
             Room.prototype.GetExitCell = function (exittype) {
                 var hw = Math.floor(this.Width / 2);
                 var hh = Math.floor(this.Height / 2);
@@ -1298,13 +1286,11 @@ var WM;
         })(Level.Grid);
         Level.Room = Room;
 
-        //class for the exits, with the target and the type
         var RoomExit = (function () {
             function RoomExit(target, type) {
                 this.TargetRoom = target;
                 this.ExitType = type;
             }
-            //find the cell where the player comes out when using the exit
             RoomExit.prototype.EntranceCell = function () {
                 var entrance = "";
                 switch (this.ExitType) {
@@ -1332,67 +1318,44 @@ var WM;
     })(WM.Level || (WM.Level = {}));
     var Level = WM.Level;
 })(WM || (WM = {}));
-/// <reference path="lib/jquery.d.ts" />
-/// <reference path='lib/jqueryui.d.ts' />
-/// <reference path="G.ts" />
-/// <reference path="game.ts" />
-/// <reference path="ui/popup/popup.ts" />
-/// <reference path="ui/popup/dialogpanel.ts" />
-/// <reference path="ui/popup/messagepopup.ts" />
-/// <reference path="ui/textbutton.ts" />
-/// <reference path="ui/dialogoption.ts" />
-/// <reference path="event/event.ts" />
-/// <reference path="event/treasure.ts" />
-/// <reference path="event/creep.ts" />
-/// <reference path="event/dialog.ts" />
-/// <reference path="event/effect.ts" />
-/// <reference path="level/roomsection.ts" />
-/// <reference path="level/cell.ts" />
-/// <reference path="level/grid.ts" />
-/// <reference path="level/lvldata.ts" />
-/// <reference path="level/player.ts" />
-/// <reference path="level/room.ts" />
 var WM;
 (function (WM) {
-    /// <reference path="../_reference.ts" />
-    (function (Event) {
-        var Creep = (function (_super) {
-            __extends(Creep, _super);
-            function Creep(name) {
-                _super.call(this, "creep");
-                this.Data = new CreepData(WM.G.creeps[name]);
-                this.ResultPanel = new WM.UI.Popup.MessagePopup("result", null, this.Resolve, this);
-                this.InfoPanel = new WM.UI.Popup.MessagePopup("blaaa", null, this.ResultPanel.Open, this.ResultPanel);
+    (function (UI) {
+        var SideBar = (function () {
+            function SideBar() {
+                this.view = $("#ui");
+                this.view.css("left", (WM.G.MapWidth + 1) + "px");
+                this.view.css("top", "0px");
+                this.view.css("width", WM.G.UIWidth + "px");
+                this.view.css("height", WM.G.UIHeight + "px");
+                this.stats = $("<div id='stats'></div>");
+                this.view.append(this.stats);
+                this.setupControls();
             }
-            Creep.prototype.Handle = function () {
-                this.InfoPanel.Open();
+            SideBar.prototype.setupControls = function () {
+                this.controls = $("<div id='controls'></div>");
+                this.controls.append(new UI.Button("up", function () {
+                    wm.handleInput("up");
+                }).view);
+                this.controls.append(new UI.Button("down", function () {
+                    wm.handleInput("down");
+                }).view);
+                this.controls.append(new UI.Button("left", function () {
+                    wm.handleInput("left");
+                }).view);
+                this.controls.append(new UI.Button("right", function () {
+                    wm.handleInput("right");
+                }).view);
+                this.view.append(this.controls);
             };
-            Creep.prototype.Resolve = function () {
-                _super.prototype.Resolve.call(this, true);
-                wm.toCombat(this.Data);
+            SideBar.prototype.update = function () {
+                this.stats.empty();
+                this.stats.append(new UI.Label("Energy:" + wm.player.Energy + "/" + wm.player.MaxEnergy).view);
+                this.stats.append(new UI.Label("Health:" + wm.player.Health + "/" + wm.player.MaxHealth).view);
             };
-            return Creep;
-        })(Event.RoomEvent);
-        Event.Creep = Creep;
-        var CreepData = (function () {
-            function CreepData(data) {
-                this.Name = data['name'];
-                this.Description = data['descr'];
-                this.Image = data['img'];
-                this.Attack = data['a'];
-                this.Defense = data['d'];
-                this.Health = data['h'];
-                this.Reward = new Event.Treasure(data['reward']);
-                //this.CombatEffects = new Array<Combat.CombatEffect>();
-                //if (data['fx'] !== undefined) {
-                //    for (var i = 0; i < data['fx'].length; i++) {
-                //        this.CombatEffects.push(new Combat.CombatEffect(data['fx'][i]));
-                //    }
-                //}
-            }
-            return CreepData;
+            return SideBar;
         })();
-        Event.CreepData = CreepData;
-    })(WM.Event || (WM.Event = {}));
-    var Event = WM.Event;
+        UI.SideBar = SideBar;
+    })(WM.UI || (WM.UI = {}));
+    var UI = WM.UI;
 })(WM || (WM = {}));
