@@ -21,7 +21,8 @@ module WM.UI.Popup {
         }
         Open() {
             this.view.show();
-            wm.popup = this;        
+            wm.popup = this;   
+                 
         }
         //close popup and return the result
         Close() {
@@ -29,6 +30,7 @@ module WM.UI.Popup {
             this.view.hide();  
             if(this.OnClose!=null)          
                 this.OnClose.call(this.OnCloseContext); 
+            wm.sidebar.update();
             wm.popup = null;        
         }
         HandleInput(input: string) {

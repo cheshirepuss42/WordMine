@@ -1,6 +1,7 @@
 /// <reference path="../../_reference.ts" />
 module WM.UI.Popup {
     export class DialogPanel extends Popup {
+        data: any;
         text: string;
         image: string;//to be made
         Options: Array<DialogOption>;
@@ -8,32 +9,37 @@ module WM.UI.Popup {
         SelectedOption: number;
         constructor(panel:any) {
             super(0, 0, G.MapWidth, G.MapHeight);
-
+            
             this.padding = 10;           
-            this.Options = new Array<DialogOption>();            
-            for (var j = 0; j < panel.options.length; j++) {
-                var option = panel.options[j];
-                if (Event.Effect.Happens(option.conditions)) {
-                    this.BuildOption(option);
-                }
-            }
-            this.image = panel.img;  
-            this.text = panel.text;  
-            this.SelectedOption = 0;          
+            this.data = panel;
         }
-
+        Open() {
+            
+            this.image = this.data.img;  
+            this.text = this.data.text;
+            
+            this.view.append(new Label(this.text).view);
+            this.Options = new Array<DialogOption>();            
+            for (var j = 0; j < this.data.options.length; j++) {
+                var option = this.data.options[j];
+                if (Event.Effect.Happens(option.conditions)) {   
+                    this.Options.push(this.BuildOption(option));                      
+                }
+            }  
+            this.SelectedOption = 0; 
+            super.Open();
+        }
         BuildOption(option: any): DialogOption {
             var self = this;
-            var effects = function () {
+            var effects = function (e) {
+                e.stopPropagation();
                 for (var i = 0; i < option.effects.length; i++) {
                     Event.Effect.Call(option.effects[i])();
                 }
-                self.Close();
             }
-            var eopt = new DialogOption(option.text, G.MapWidth, 70, effects);  
-            eopt.y += 200 + ((this.Options.length - 1) * eopt.h);
-            this.Options.push(eopt);
-            //this.add(eopt);
+            var eopt = new DialogOption(option.text, effects);  
+            this.view.append(eopt.view);
+          
             return eopt;
         }
 

@@ -33,19 +33,6 @@ module WM.Level {
                 wm.mapView.append(this.getView(i));
             }
         }
-        //getView(x, y, layer): string {
-        //    var index = this.GetTileIndex(G.layerTypes[layer]);
-        //    var iX = (index % 16) * G.CellSize;
-        //    var iY = Math.floor(index / 16) * G.CellSize;
-        //    var style = "";
-        //    style += "z-index:" + layer + ";";
-        //    console.log("opacity:" + this.MinedOut + ";");
-        //    style += "opacity:" + this.MinedOut + ";";
-        //    style += "top:" + (x * G.CellSize) + "px;";
-        //    style += "left:" + (y * G.CellSize) + "px;";
-        //    style += "background-position: -" + iX + "px -" + iY + "px;";
-        //    return "<div class='cell' style='" + style + "'></div>";
-        //}
         //see if the url indicates whether to show the unminedlayer
         UnminedByQuery(): boolean {
             var querystring = window.location.href.split("?")

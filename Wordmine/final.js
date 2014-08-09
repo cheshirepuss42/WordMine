@@ -52,92 +52,7 @@
                     "XXX.XX",
                     "X..te.",
                     "X..XXX",
-                    "X..Xcc"]
-            },
-            {
-                "type": "fourth",
-                "grid": [
-                    ".....X",
-                    "ttt..X",
-                    ".....X",
-                    "X.XXXX"]
-            },
-            {
-                "type": "fourth",
-                "grid": [
-                    "XXX...",
-                    "XX....",
-                    ".X..tt",
-                    ".X...."]
-            },
-            {
-                "type": "fourth",
-                "grid": [
-                    "X..XXX",
-                    ".X.tt.",
-                    "..X.X.",
-                    "....X."]
-            },
-            {
-                "type": "fourth",
-                "grid": [
-                    "XXXXXX",
-                    "XXX.X.",
-                    "XX.tt.",
-                    "XXXXXX"]
-            },
-            {
-                "type": "fourth",
-                "grid": [
-                    "X..XXX",
-                    ".X..tt",
-                    "..X.X.",
-                    "....X."]
-            },
-            {
-                "type": "fourth",
-                "grid": [
-                    ".tt...",
-                    "...X..",
-                    "...X..",
-                    "..tt.."]
-            },
-            {
-                "type": "fourth",
-                "grid": [
-                    "XXXXXX",
-                    "X...X.",
-                    "X.ttte",
-                    "XXXXXX"]
-            },
-            {
-                "type": "fourth",
-                "grid": [
-                    "tX.t.X",
-                    "eX.X.X",
-                    ".X.X.X",
-                    "...X.."]
-            },
-            {
-                "type": "vertical",
-                "grid": [
-                    ".....X",
-                    "XX....",
-                    ".....X",
-                    "XX..X.",
-                    ".....X",
-                    ".....X",
-                    "XX..X.",
-                    "...X..",
-                    "XX.XXX"]
-            },
-            {
-                "type": "horizontal",
-                "grid": [
-                    ".............",
-                    ".XXXXXXXX.X..",
-                    ".X...........",
-                    "XX.XXXXXXXXXX"]
+                    "X..Xee"]
             }
         ];
         G.creeps = {
@@ -208,6 +123,12 @@ var WM;
 
             this.preload(WM.G.assets);
             this.popup = null;
+            var self = this;
+            this.mapView.click(function (e) {
+                var mX = Math.floor((e.pageX - $(this).position().left) / WM.G.CellSize);
+                var mY = Math.floor((e.pageY - $(this).position().top) / WM.G.CellSize);
+                var cell = self.currentRoom.Cells[mY][mX];
+            });
         }
         Main.prototype.setPlayerPosition = function () {
         };
@@ -378,6 +299,7 @@ var WM;
                     this.view.hide();
                     if (this.OnClose != null)
                         this.OnClose.call(this.OnCloseContext);
+                    wm.sidebar.update();
                     wm.popup = null;
                 };
                 Popup.prototype.HandleInput = function (input) {
@@ -406,28 +328,33 @@ var WM;
                     _super.call(this, 0, 0, WM.G.MapWidth, WM.G.MapHeight);
 
                     this.padding = 10;
+                    this.data = panel;
+                }
+                DialogPanel.prototype.Open = function () {
+                    this.image = this.data.img;
+                    this.text = this.data.text;
+
+                    this.view.append(new UI.Label(this.text).view);
                     this.Options = new Array();
-                    for (var j = 0; j < panel.options.length; j++) {
-                        var option = panel.options[j];
+                    for (var j = 0; j < this.data.options.length; j++) {
+                        var option = this.data.options[j];
                         if (WM.Event.Effect.Happens(option.conditions)) {
-                            this.BuildOption(option);
+                            this.Options.push(this.BuildOption(option));
                         }
                     }
-                    this.image = panel.img;
-                    this.text = panel.text;
                     this.SelectedOption = 0;
-                }
+                    _super.prototype.Open.call(this);
+                };
                 DialogPanel.prototype.BuildOption = function (option) {
                     var self = this;
-                    var effects = function () {
+                    var effects = function (e) {
+                        e.stopPropagation();
                         for (var i = 0; i < option.effects.length; i++) {
                             WM.Event.Effect.Call(option.effects[i])();
                         }
-                        self.Close();
                     };
-                    var eopt = new UI.DialogOption(option.text, WM.G.MapWidth, 70, effects);
-                    eopt.y += 200 + ((this.Options.length - 1) * eopt.h);
-                    this.Options.push(eopt);
+                    var eopt = new UI.DialogOption(option.text, effects);
+                    this.view.append(eopt.view);
 
                     return eopt;
                 };
@@ -515,13 +442,18 @@ var WM;
 var WM;
 (function (WM) {
     (function (UI) {
-        var DialogOption = (function (_super) {
-            __extends(DialogOption, _super);
-            function DialogOption(text, width, height, callback, context) {
-                _super.call(this, text, width, height, callback, context, "#ddf");
+        var DialogOption = (function () {
+            function DialogOption(text, onclick, cssclass) {
+                if (typeof cssclass === "undefined") { cssclass = null; }
+                this.text = text;
+                this.onClick = onclick;
+                var cl = (cssclass == null) ? "" : "class='" + cssclass + "'";
+                this.view = $("<div " + cl + ">" + this.text + "</div>");
+                var self = this;
+                this.view.click(this.onClick);
             }
             return DialogOption;
-        })(UI.TextButton);
+        })();
         UI.DialogOption = DialogOption;
     })(WM.UI || (WM.UI = {}));
     var UI = WM.UI;
@@ -583,47 +515,11 @@ var WM;
 var WM;
 (function (WM) {
     (function (Event) {
-        var Creep = (function (_super) {
-            __extends(Creep, _super);
-            function Creep(name) {
-                _super.call(this, "creep");
-                this.Data = new CreepData(WM.G.creeps[name]);
-                this.ResultPanel = new WM.UI.Popup.MessagePopup("result", null, this.Resolve, this);
-                this.InfoPanel = new WM.UI.Popup.MessagePopup("blaaa", null, this.ResultPanel.Open, this.ResultPanel);
-            }
-            Creep.prototype.Handle = function () {
-                this.InfoPanel.Open();
-            };
-            Creep.prototype.Resolve = function () {
-                _super.prototype.Resolve.call(this, true);
-                wm.toCombat(this.Data);
-            };
-            return Creep;
-        })(Event.RoomEvent);
-        Event.Creep = Creep;
-        var CreepData = (function () {
-            function CreepData(data) {
-                this.Name = data['name'];
-                this.Description = data['descr'];
-                this.Image = data['img'];
-                this.Attack = data['a'];
-                this.Defense = data['d'];
-                this.Health = data['h'];
-                this.Reward = new Event.Treasure(data['reward']);
-            }
-            return CreepData;
-        })();
-        Event.CreepData = CreepData;
-    })(WM.Event || (WM.Event = {}));
-    var Event = WM.Event;
-})(WM || (WM = {}));
-var WM;
-(function (WM) {
-    (function (Event) {
         var Dialog = (function (_super) {
             __extends(Dialog, _super);
             function Dialog(event) {
                 _super.call(this, "dialog");
+
                 this.EventData = WM.G.events[event];
                 this.Panels = new Array();
                 this.CurrentPanel = 0;
@@ -633,9 +529,11 @@ var WM;
             }
             Dialog.prototype.Handle = function () {
                 this.ShowPanel();
+                console.log(this.Panels);
             };
             Dialog.prototype.ShowPanel = function (nr) {
                 if (typeof nr === "undefined") { nr = 0; }
+                console.log("calling showpanel", nr);
                 if (nr < 0) {
                     if (nr == -2) {
                         this.Panels[this.CurrentPanel].Close();
@@ -648,6 +546,7 @@ var WM;
                 } else {
                     if (nr > 0)
                         this.Panels[this.CurrentPanel].Close();
+                    console.log("opening ", nr);
                     this.Panels[nr].Open();
                     this.CurrentPanel = nr;
                 }
@@ -675,6 +574,24 @@ var WM;
                         var call = elems[0].split('.');
                         var mod = elems[1];
                         var am = elems[2];
+                        var target = wm[call[0]][call[1]];
+                        switch (mod) {
+                            case "true":
+                                result = target == true;
+                                break;
+                            case "false":
+                                result = target == false;
+                                break;
+                            case "=":
+                                result = am == target;
+                                break;
+                            case ">":
+                                result = am < target;
+                                break;
+                            case "<":
+                                result = am > target;
+                                break;
+                        }
                     }
                     if (!result)
                         return false;
@@ -685,6 +602,7 @@ var WM;
                 var f;
                 if (!isNaN(parseFloat(str))) {
                     f = function () {
+                        console.log("call:" + str);
                         var event = wm.targetCell.Event;
                         event.ShowPanel(+str);
                     };
@@ -1317,6 +1235,43 @@ var WM;
         Level.RoomExit = RoomExit;
     })(WM.Level || (WM.Level = {}));
     var Level = WM.Level;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (Event) {
+        var Creep = (function (_super) {
+            __extends(Creep, _super);
+            function Creep(name) {
+                _super.call(this, "creep");
+                this.Data = new CreepData(WM.G.creeps[name]);
+                this.ResultPanel = new WM.UI.Popup.MessagePopup("result", null, this.Resolve, this);
+                this.InfoPanel = new WM.UI.Popup.MessagePopup("blaaa", null, this.ResultPanel.Open, this.ResultPanel);
+            }
+            Creep.prototype.Handle = function () {
+                this.InfoPanel.Open();
+            };
+            Creep.prototype.Resolve = function () {
+                _super.prototype.Resolve.call(this, true);
+                wm.toCombat(this.Data);
+            };
+            return Creep;
+        })(Event.RoomEvent);
+        Event.Creep = Creep;
+        var CreepData = (function () {
+            function CreepData(data) {
+                this.Name = data['name'];
+                this.Description = data['descr'];
+                this.Image = data['img'];
+                this.Attack = data['a'];
+                this.Defense = data['d'];
+                this.Health = data['h'];
+                this.Reward = new Event.Treasure(data['reward']);
+            }
+            return CreepData;
+        })();
+        Event.CreepData = CreepData;
+    })(WM.Event || (WM.Event = {}));
+    var Event = WM.Event;
 })(WM || (WM = {}));
 var WM;
 (function (WM) {

@@ -14,14 +14,14 @@ module WM.Event {
                     var call = elems[0].split('.');
                     var mod = elems[1];
                     var am = elems[2];
-                    //var target = wm[call[0]][call[1]];                         
-                    //switch (mod) {
-                    //    case "true": result = target == true;break;
-                    //    case "false": result = target == false;break;
-                    //    case "=": result = am == target;break;
-                    //    case ">": result = am < target;break;
-                    //    case "<": result = am > target;break;
-                    //}
+                    var target = wm[call[0]][call[1]];                         
+                    switch (mod) {
+                        case "true": result = target == true;break;
+                        case "false": result = target == false;break;
+                        case "=": result = am == target;break;
+                        case ">": result = am < target;break;
+                        case "<": result = am > target;break;
+                    }
                 }
                 if (!result)
                     return false;
@@ -31,7 +31,7 @@ module WM.Event {
         static Call(str:string): Function {
             var f: Function;
             if (!isNaN(parseFloat(str))) {
-                f = function () { var event = <Event.Dialog>wm.targetCell.Event; event.ShowPanel(+str); }//activate next panel
+                f = function () { console.log("call:" + str);var event = <Event.Dialog>wm.targetCell.Event; event.ShowPanel(+str); }//activate next panel
             }
             else {
                 var elems = str.split(' ');

@@ -3,8 +3,6 @@
 
 
 Features:
-- show and update stats in sidebar
-- make dialogs work
 - build combat
 - style
 

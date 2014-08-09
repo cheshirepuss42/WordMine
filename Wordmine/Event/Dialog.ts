@@ -8,18 +8,22 @@ module WM.Event {
 
         constructor(event:string) {
             super("dialog");
+
             this.EventData = G.events[event];
             this.Panels = new Array<UI.Popup.DialogPanel>();
             this.CurrentPanel = 0;
             for (var i = 0; i < this.EventData.panels.length; i++) {
                 this.Panels.push(new UI.Popup.DialogPanel(this.EventData.panels[i]));
             }
+            
         }
         Handle() {
             //show first panel
             this.ShowPanel();
+            console.log(this.Panels);
         }
-        ShowPanel(nr: number= 0) {         
+        ShowPanel(nr: number= 0) {  
+            console.log("calling showpanel",nr);       
             if (nr < 0) {
                 if (nr == -2) {//close panel, event stays
                     this.Panels[this.CurrentPanel].Close();
@@ -32,7 +36,8 @@ module WM.Event {
             }
             else{//first panel
                 if (nr > 0)
-                    this.Panels[this.CurrentPanel].Close();         
+                    this.Panels[this.CurrentPanel].Close(); 
+                console.log("opening ", nr);        
                 this.Panels[nr].Open();
                 this.CurrentPanel = nr;
             }            

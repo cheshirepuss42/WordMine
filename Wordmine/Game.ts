@@ -20,6 +20,12 @@ module WM {
 
             this.preload(G.assets); 
             this.popup = null;
+            var self = this;
+            this.mapView.click(function (e) {
+                var mX = Math.floor((e.pageX - $(this).position().left) / G.CellSize);
+                var mY = Math.floor((e.pageY - $(this).position().top) / G.CellSize);
+                var cell = self.currentRoom.Cells[mY][mX]; 
+            });
             
         }
         setPlayerPosition() {
