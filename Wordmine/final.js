@@ -52,7 +52,7 @@
                     "XXX.XX",
                     "X..te.",
                     "X..XXX",
-                    "X..Xee"]
+                    "X..Xcc"]
             }
         ];
         G.creeps = {
@@ -117,6 +117,7 @@ var WM;
             }, 10);
             this.mapView = $("#map");
             this.popupView = $("#popup");
+            this.combatView = $("#combat");
             this.sidebar = new WM.UI.SideBar();
             this.popupView.css("width", WM.G.MapWidth + "px");
             this.popupView.css("height", WM.G.MapHeight + "px");
@@ -224,6 +225,13 @@ var WM;
             this.sidebar.update();
         };
         Main.prototype.toCombat = function (creepData) {
+            this.mapView.hide();
+            var field = new WM.Combat.Field(creepData);
+            this.combatView.show();
+        };
+        Main.prototype.endCombat = function (result) {
+            this.combatView.hide();
+            this.mapView.show();
         };
         Main.prototype.handleExit = function (exit) {
             this.currentRoom = exit.TargetRoom;
@@ -509,6 +517,43 @@ var WM;
             return Item;
         })();
         Event.Item = Item;
+    })(WM.Event || (WM.Event = {}));
+    var Event = WM.Event;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (Event) {
+        var Creep = (function (_super) {
+            __extends(Creep, _super);
+            function Creep(name) {
+                _super.call(this, "creep");
+                this.Data = new CreepData(WM.G.creeps[name]);
+                this.ResultPanel = new WM.UI.Popup.MessagePopup("result", null, this.Resolve, this);
+                this.InfoPanel = new WM.UI.Popup.MessagePopup("blaaa", null, this.ResultPanel.Open, this.ResultPanel);
+            }
+            Creep.prototype.Handle = function () {
+                this.InfoPanel.Open();
+            };
+            Creep.prototype.Resolve = function () {
+                _super.prototype.Resolve.call(this, true);
+                wm.toCombat(this.Data);
+            };
+            return Creep;
+        })(Event.RoomEvent);
+        Event.Creep = Creep;
+        var CreepData = (function () {
+            function CreepData(data) {
+                this.Name = data['name'];
+                this.Description = data['descr'];
+                this.Image = data['img'];
+                this.Attack = data['a'];
+                this.Defense = data['d'];
+                this.Health = data['h'];
+                this.Reward = new Event.Treasure(data['reward']);
+            }
+            return CreepData;
+        })();
+        Event.CreepData = CreepData;
     })(WM.Event || (WM.Event = {}));
     var Event = WM.Event;
 })(WM || (WM = {}));
@@ -1238,40 +1283,93 @@ var WM;
 })(WM || (WM = {}));
 var WM;
 (function (WM) {
-    (function (Event) {
-        var Creep = (function (_super) {
-            __extends(Creep, _super);
-            function Creep(name) {
-                _super.call(this, "creep");
-                this.Data = new CreepData(WM.G.creeps[name]);
-                this.ResultPanel = new WM.UI.Popup.MessagePopup("result", null, this.Resolve, this);
-                this.InfoPanel = new WM.UI.Popup.MessagePopup("blaaa", null, this.ResultPanel.Open, this.ResultPanel);
+    (function (Combat) {
+        var Field = (function () {
+            function Field(crpdata) {
+                this.view = wm.combatView;
+                this.view.empty();
+                this.creepData = crpdata;
+                var self = this;
+
+                var f = function (a, b) {
+                    var letter = b.item.data().letter;
+                    var dropposition = b.item.index();
+                };
+                this.inventory = new Combat.LetterCollection("inventory", ["inventory", "word"], f, 50, 50, 4, 4);
+                this.inventory.addLetters([new Combat.Letter("P"), new Combat.Letter("G"), new Combat.Letter("E"), new Combat.Letter("R")]);
+                this.word = new Combat.LetterCollection("word", ["inventory", "word"], f, 50, 250, 8, 1);
+                this.confirmButton = new WM.UI.Button("confirm", function () {
+                    console.log(self.word.getLetters());
+                });
+                this.fleeButton = new WM.UI.Button("flee", function () {
+                    wm.endCombat("hjhjhj");
+                });
+
+                this.view.append(this.confirmButton.view);
+                this.view.append(this.fleeButton.view);
+                this.view.append(this.inventory.view);
+                this.view.append(this.word.view);
             }
-            Creep.prototype.Handle = function () {
-                this.InfoPanel.Open();
-            };
-            Creep.prototype.Resolve = function () {
-                _super.prototype.Resolve.call(this, true);
-                wm.toCombat(this.Data);
-            };
-            return Creep;
-        })(Event.RoomEvent);
-        Event.Creep = Creep;
-        var CreepData = (function () {
-            function CreepData(data) {
-                this.Name = data['name'];
-                this.Description = data['descr'];
-                this.Image = data['img'];
-                this.Attack = data['a'];
-                this.Defense = data['d'];
-                this.Health = data['h'];
-                this.Reward = new Event.Treasure(data['reward']);
-            }
-            return CreepData;
+            return Field;
         })();
-        Event.CreepData = CreepData;
-    })(WM.Event || (WM.Event = {}));
-    var Event = WM.Event;
+        Combat.Field = Field;
+    })(WM.Combat || (WM.Combat = {}));
+    var Combat = WM.Combat;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (Combat) {
+        var Letter = (function () {
+            function Letter(chr) {
+                this.char = chr;
+                this.view = $("<div class='letter'>" + this.char + "</div>");
+                this.view.css("width", WM.G.CombatLetterWidth + "px");
+                this.view.css("height", WM.G.CombatLetterHeight + "px");
+                this.view.css("border", "1px solid black");
+                this.view.data({ letter: this });
+            }
+            return Letter;
+        })();
+        Combat.Letter = Letter;
+    })(WM.Combat || (WM.Combat = {}));
+    var Combat = WM.Combat;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (Combat) {
+        var LetterCollection = (function () {
+            function LetterCollection(id, targets, onDrop, x, y, w, h) {
+                this.view = $("<div id='" + id + "' class='lettercollection " + id + "' ></div>");
+                this.view.css("width", (2 + WM.G.CombatLetterWidth) * w + "px");
+                this.view.css("height", (2 + WM.G.CombatLetterHeight) * h + "px");
+                this.view.css("left", x + "px");
+                this.view.css("top", y + "px");
+                var connects = targets.join(", #");
+                connects = "#" + connects;
+                this.view.sortable({ connectWith: connects });
+                var self = this;
+                this.view.on("sortreceive", function (a, b) {
+                    onDrop(a, b);
+                });
+                this.letters = new Array();
+            }
+            LetterCollection.prototype.addLetters = function (letters) {
+                for (var i = 0; i < letters.length; i++) {
+                    this.view.append(letters[i].view);
+                }
+            };
+            LetterCollection.prototype.getLetters = function () {
+                var letters = new Array();
+                $('.letter', this.view).each(function (i, elem) {
+                    letters.push($(elem).data().letter);
+                });
+                return letters;
+            };
+            return LetterCollection;
+        })();
+        Combat.LetterCollection = LetterCollection;
+    })(WM.Combat || (WM.Combat = {}));
+    var Combat = WM.Combat;
 })(WM || (WM = {}));
 var WM;
 (function (WM) {

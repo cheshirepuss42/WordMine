@@ -3,6 +3,7 @@ module WM {
     export class Main {
         mapView: JQuery;
         popupView: JQuery;
+        combatView: JQuery;
         sidebar: UI.SideBar;
         currentLevel: Level.LvlData;
         currentRoom: Level.Room;
@@ -14,6 +15,7 @@ module WM {
             setTimeout(function () { window.scrollTo(0, 1); }, 10);      
             this.mapView = $("#map");
             this.popupView = $("#popup");
+            this.combatView = $("#combat");
             this.sidebar = new UI.SideBar();           
             this.popupView.css("width", G.MapWidth + "px");
             this.popupView.css("height", G.MapHeight + "px");
@@ -114,8 +116,16 @@ module WM {
             }
             this.sidebar.update();
         }
-        toCombat(creepData:Event.CreepData) {
+        toCombat(creepData: Event.CreepData) {
+            this.mapView.hide();
+            var field = new Combat.Field(creepData);
+            this.combatView.show();
 
+            
+        }
+        endCombat(result: any) {
+            this.combatView.hide();
+            this.mapView.show();
         }
         handleExit(exit: Level.RoomExit) {
             this.currentRoom = exit.TargetRoom;

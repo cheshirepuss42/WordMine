@@ -34,6 +34,11 @@
     <None Include="wordmine.pubxml" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Combat\Field.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="Combat\Letter.ts" />
+    <TypeScriptCompile Include="Combat\LetterCollection.ts" />
     <TypeScriptCompile Include="Event\Creep.ts" />
     <TypeScriptCompile Include="Event\Dialog.ts" />
     <TypeScriptCompile Include="Event\Effect.ts" />
@@ -59,9 +64,7 @@
     <TypeScriptCompile Include="UI\TextButton.ts" />
     <TypeScriptCompile Include="_reference.ts" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Combat\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
