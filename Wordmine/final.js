@@ -31,7 +31,7 @@
             enumerable: true,
             configurable: true
         });
-        G.assets = ['t000.png'];
+        G.images = ['t000.png'];
         G.layerTypes = ['floor', 'wall', 'event', 'unmined'];
         G.CellSize = 32;
         G.GameWidth = 800;
@@ -53,6 +53,91 @@
                     "X..te.",
                     "X..XXX",
                     "X..Xcc"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    ".....X",
+                    "ttt..X",
+                    ".....X",
+                    "X.XXXX"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "XXX...",
+                    "XX....",
+                    ".X..tt",
+                    ".X...."]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "X..XXX",
+                    ".X.tt.",
+                    "..X.X.",
+                    "....X."]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "XXXXXX",
+                    "XXX.X.",
+                    "XX.tt.",
+                    "XXXXXX"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "X..XXX",
+                    ".X..tt",
+                    "..X.X.",
+                    "....X."]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    ".tt...",
+                    "...X..",
+                    "...X..",
+                    "..tt.."]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "XXXXXX",
+                    "X...X.",
+                    "X.ttte",
+                    "XXXXXX"]
+            },
+            {
+                "type": "fourth",
+                "grid": [
+                    "tX.t.X",
+                    "eX.X.X",
+                    ".X.X.X",
+                    "...X.."]
+            },
+            {
+                "type": "vertical",
+                "grid": [
+                    ".....X",
+                    "XX....",
+                    ".....X",
+                    "XX..X.",
+                    ".....X",
+                    ".....X",
+                    "XX..X.",
+                    "...X..",
+                    "XX.XXX"]
+            },
+            {
+                "type": "horizontal",
+                "grid": [
+                    ".............",
+                    ".XXXXXXXX.X..",
+                    ".X...........",
+                    "XX.XXXXXXXXXX"]
             }
         ];
         G.creeps = {
@@ -121,8 +206,6 @@ var WM;
             this.sidebar = new WM.UI.SideBar();
             this.popupView.css("width", WM.G.MapWidth + "px");
             this.popupView.css("height", WM.G.MapHeight + "px");
-
-            this.preload(WM.G.assets);
             this.popup = null;
             var self = this;
             this.mapView.click(function (e) {
@@ -130,23 +213,37 @@ var WM;
                 var mY = Math.floor((e.pageY - $(this).position().top) / WM.G.CellSize);
                 var cell = self.currentRoom.Cells[mY][mX];
             });
+            this.preload();
         }
-        Main.prototype.setPlayerPosition = function () {
-        };
-        Main.prototype.preload = function (images) {
+        Main.prototype.loadImages = function (onFinished) {
+            var self = this;
+            var loadImage = function () {
+                loadedImages++;
+                if (loadedImages == totalImages) {
+                    onFinished();
+                }
+            };
             var loadedImages = 0;
-            var totalImages = images.length;
+            var totalImages = WM.G.images.length;
             for (var i = 0; i < totalImages; i++) {
                 var tempImage = new Image();
-                var self = this;
-                tempImage.addEventListener("load", function () {
-                    loadedImages++;
-                    if (loadedImages == totalImages) {
-                        self.startGame();
-                    }
-                }, true);
-                tempImage.src = '/img/' + images[i];
+                tempImage.addEventListener("load", loadImage, true);
+                tempImage.src = '/img/' + WM.G.images[i];
             }
+        };
+        Main.prototype.loadDictionary = function (onFinished) {
+            $.get('dictionary.txt', function (data) {
+                wm.dictionary = new WM.Combat.Dictionary(data);
+                onFinished();
+            });
+        };
+        Main.prototype.preload = function () {
+            var self = this;
+            this.loadDictionary(function () {
+                self.loadImages(function () {
+                    self.startGame();
+                });
+            });
         };
         Main.prototype.startGame = function () {
             console.log("images loaded, starting game");
@@ -1284,6 +1381,28 @@ var WM;
 var WM;
 (function (WM) {
     (function (Combat) {
+        var Dictionary = (function () {
+            function Dictionary(data) {
+                this.words = data.split('\r\n');
+            }
+            Dictionary.prototype.contains = function (word) {
+                word = word.toLowerCase();
+                for (var i = 0; i < this.words.length; i++) {
+                    if (this.words[i] == word) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+            return Dictionary;
+        })();
+        Combat.Dictionary = Dictionary;
+    })(WM.Combat || (WM.Combat = {}));
+    var Combat = WM.Combat;
+})(WM || (WM = {}));
+var WM;
+(function (WM) {
+    (function (Combat) {
         var Field = (function () {
             function Field(crpdata) {
                 this.view = wm.combatView;
@@ -1296,13 +1415,15 @@ var WM;
                     var dropposition = b.item.index();
                 };
                 this.inventory = new Combat.LetterCollection("inventory", ["inventory", "word"], f, 50, 50, 4, 4);
-                this.inventory.addLetters([new Combat.Letter("P"), new Combat.Letter("G"), new Combat.Letter("E"), new Combat.Letter("R")]);
+                this.inventory.addLetters([new Combat.Letter("P"), new Combat.Letter("G"), new Combat.Letter("E"), new Combat.Letter("R"), new Combat.Letter("O"), new Combat.Letter("U")]);
                 this.word = new Combat.LetterCollection("word", ["inventory", "word"], f, 50, 250, 8, 1);
                 this.confirmButton = new WM.UI.Button("confirm", function () {
-                    console.log(self.word.getLetters());
+                    console.log(self.word.getWord());
+                    var result = wm.dictionary.contains(self.word.getWord());
+                    console.log(result);
                 });
                 this.fleeButton = new WM.UI.Button("flee", function () {
-                    wm.endCombat("hjhjhj");
+                    wm.endCombat("flee");
                 });
 
                 this.view.append(this.confirmButton.view);
@@ -1365,6 +1486,14 @@ var WM;
                 });
                 return letters;
             };
+            LetterCollection.prototype.getWord = function () {
+                var str = "";
+                var letters = this.getLetters();
+                for (var i = 0; i < letters.length; i++) {
+                    str += letters[i].char;
+                }
+                return str;
+            };
             return LetterCollection;
         })();
         Combat.LetterCollection = LetterCollection;
@@ -1403,7 +1532,7 @@ var WM;
             };
             SideBar.prototype.update = function () {
                 this.stats.empty();
-                this.stats.append(new UI.Label("Energy:" + wm.player.Energy + "/" + wm.player.MaxEnergy).view);
+                this.stats.append(new UI.Label("Resources:" + wm.player.Energy + "/" + wm.player.MaxEnergy).view);
                 this.stats.append(new UI.Label("Health:" + wm.player.Health + "/" + wm.player.MaxHealth).view);
             };
             return SideBar;

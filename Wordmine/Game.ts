@@ -5,6 +5,7 @@ module WM {
         popupView: JQuery;
         combatView: JQuery;
         sidebar: UI.SideBar;
+        dictionary: Combat.Dictionary;
         currentLevel: Level.LvlData;
         currentRoom: Level.Room;
         player: Level.Player;
@@ -19,8 +20,6 @@ module WM {
             this.sidebar = new UI.SideBar();           
             this.popupView.css("width", G.MapWidth + "px");
             this.popupView.css("height", G.MapHeight + "px");
-
-            this.preload(G.assets); 
             this.popup = null;
             var self = this;
             this.mapView.click(function (e) {
@@ -28,25 +27,37 @@ module WM {
                 var mY = Math.floor((e.pageY - $(this).position().top) / G.CellSize);
                 var cell = self.currentRoom.Cells[mY][mX]; 
             });
-            
+            this.preload();             
         }
-        setPlayerPosition() {
-        }
-        preload(images: any[]) {
-            
+        loadImages(onFinished:Function) {
+            var self = this;
+            var loadImage = function () {
+                loadedImages++;
+                if (loadedImages == totalImages) {
+                    onFinished();
+                }
+            };
             var loadedImages = 0;
-            var totalImages = images.length;
+            var totalImages = G.images.length;
             for (var i = 0; i < totalImages; i++) {
                 var tempImage = new Image();
-                var self = this;
-                tempImage.addEventListener("load", function () {
-                    loadedImages++;
-                    if (loadedImages == totalImages) {
-                        self.startGame();
-                    }
-                }, true);
-                tempImage.src = '/img/'+images[i];
+                tempImage.addEventListener("load", loadImage, true);
+                tempImage.src = '/img/' + G.images[i];
             }
+        }
+        loadDictionary(onFinished:Function) {
+            $.get('dictionary.txt', function (data) {
+                wm.dictionary = new Combat.Dictionary(data);
+                onFinished();
+            });
+        }
+        preload() {
+            var self = this;
+            this.loadDictionary(function () {
+                self.loadImages(function () {
+                    self.startGame();
+                });
+            });
         }
         startGame() {
             console.log("images loaded, starting game");

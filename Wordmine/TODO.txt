@@ -3,8 +3,13 @@
 
 
 Features:
-- build combat
-- style
+- find letters
+- make actual creeps and combat with turns
+- make way to give player letters
+- style everything
+- make shrines (where you exchange letters for effects or resources or health)
+- show playerinfo-popup from button on sidebar
+- move letters with click
 
 
 

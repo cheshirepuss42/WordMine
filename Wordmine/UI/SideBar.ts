@@ -24,7 +24,7 @@
         }
         update() {
             this.stats.empty();
-            this.stats.append(new Label("Energy:" + wm.player.Energy + "/" + wm.player.MaxEnergy).view);
+            this.stats.append(new Label("Resources:" + wm.player.Energy + "/" + wm.player.MaxEnergy).view);
             this.stats.append(new Label("Health:" + wm.player.Health + "/" + wm.player.MaxHealth).view);
             
         }

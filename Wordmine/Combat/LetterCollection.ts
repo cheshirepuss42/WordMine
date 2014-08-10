@@ -27,5 +27,14 @@ module WM.Combat {
             $('.letter', this.view).each(function (i, elem) { letters.push($(elem).data().letter); });
             return letters;
         }
+        getWord() {
+            var str = "";
+            var letters = this.getLetters();
+            for (var i = 0; i < letters.length; i++) {
+                str += letters[i].char;
+            }
+            return str;
+
+        }
     }
 } 

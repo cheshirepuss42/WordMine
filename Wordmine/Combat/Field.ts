@@ -19,10 +19,14 @@ module WM.Combat {
                 //console.log(letter, dropposition);
             };
             this.inventory = new LetterCollection("inventory", ["inventory", "word"], f,50,50,4,4);
-            this.inventory.addLetters([new Letter("P"), new Letter("G"), new Letter("E"), new Letter("R")]);
+            this.inventory.addLetters([new Letter("P"), new Letter("G"), new Letter("E"), new Letter("R"), new Letter("O"), new Letter("U")]);
             this.word = new LetterCollection("word", ["inventory", "word"], f, 50, 250, 8, 1);
-            this.confirmButton = new UI.Button("confirm", function () { console.log(self.word.getLetters()); });
-            this.fleeButton = new UI.Button("flee", function () { wm.endCombat("hjhjhj"); });
+            this.confirmButton = new UI.Button("confirm", function () {
+                console.log(self.word.getWord());
+                var result = wm.dictionary.contains(self.word.getWord());
+                console.log(result);
+            });
+            this.fleeButton = new UI.Button("flee", function () { wm.endCombat("flee"); });
 
 
             this.view.append(this.confirmButton.view);
